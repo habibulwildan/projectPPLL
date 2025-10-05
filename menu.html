@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kopi Senja – Menu</title>
+
+    <!-- Bootstrap & Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-papbJs7X9H0EltiqoZb4b+wnRZk+3HHLji0FslRGlP5e4l+77jEjczy4s8u+09CnVcA4VbEBWbw126C5d3u1Vg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      :root {
+        /* Samakan warna dasar body dengan index.html */
+        --bg: #f8f9fa;
+        --ink: #333;
+        --line: #d9d4c7;
+        --dark: #222;
+        --accent: #2f2f2f;
+        --accent-ink: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: var(--bg);
+        color: var(--ink);
+        padding-top: 84px; /* agar konten tak ketutup header fixed */
+      }
+
+      /* ================= NAVBAR (disamakan dengan index.html) ================ */
+      .header {
+        background: linear-gradient(to bottom, #343a40, #495057);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .header h5 {
+        font-weight: 800;
+        margin: 0;
+        color: #fff;
+      }
+      .header-logo {
+        width: 60px;
+        height: auto;
+        border-radius: 50%;
+        margin-left: -40px;
+      }
+
+      /* Struktur nav disamakan: <ul class="nav"> ...  */
+      .nav .nav-link {
+        margin: 0 10px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: 1rem 1.2rem;
+        color: #fff !important;
+        text-decoration: none;
+      }
+      .nav .nav-link:hover {
+        color: #f0c040 !important;
+      }
+
+      /* ======================= HERO HEADER ======================= */
+      header.hero {
+        position: relative;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #fff;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35)), url("image/header.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      header.hero::before,
+      header.hero::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+      header.hero::before {
+        top: 0;
+        height: 40%;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+      }
+      header.hero::after {
+        bottom: 0;
+        height: 15%;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.5), transparent);
+      }
+      header.hero h1 {
+        position: relative;
+        z-index: 2;
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-style: italic;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+        font-size: clamp(2rem, 6vw, 4rem);
+      }
+
+      /* ======================= INTRO & GRID ======================= */
+      .section-intro {
+        max-width: 1000px;
+        margin: 24px auto 0;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .section-intro p {
+        margin: 0;
+        font-size: 14px;
+      }
+      .section-intro strong {
+        font-size: 20px;
+      }
+
+      .menu-section {
+        max-width: 1000px;
+        margin: 34px auto;
+        padding: 20px;
+        background: var(--bg);
+      }
+      .menu-section h2 {
+        font-size: 28px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+        margin: 0 0 18px;
+      }
+      .menu-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .menu-item {
+        flex: 1 1 calc(25% - 20px);
+        position: relative;
+        text-align: center;
+      }
+
+      .menu-item img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+        border-radius: 6px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+      .menu-item:hover img {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+      }
+
+      .menu-item h3 {
+        margin: 10px 0 0;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        color: #2b2b2b;
+        text-align: center;
+        font-size: clamp(0.95rem, 0.6vw + 0.7rem, 1.125rem);
+      }
+
+      /* Price badge (sudah dibuat nempel pojok kiri & kecil) */
+      .price-badge {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        z-index: 2;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(0.7rem, 0.4vw + 0.5rem, 0.85rem);
+        letter-spacing: 0.2px;
+        color: #1f1f1f;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        backdrop-filter: saturate(140%) blur(2px);
+      }
+
+      @media (max-width: 900px) {
+        .menu-item {
+          flex-basis: calc(33.333% - 20px);
+        }
+      }
+      @media (max-width: 640px) {
+        .menu-item {
+          flex-basis: calc(50% - 20px);
+        }
+      }
+
+      /* ======================= FOOTER (disamakan) ======================= */
+      .footer-custom {
+        background: #252220;
+        color: #fff;
+        padding: 50px 0 40px 0;
+        font-family: "Georgia", serif;
+        font-weight: 300;
+        font-size: 0.95rem;
+        margin-top: 40px;
+      }
+      .container-footer {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 30px;
+      }
+      .footer-row {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        border-bottom: 1px solid #484848;
+        padding-bottom: 24px;
+        gap: 60px;
+      }
+      .footer-col {
+        flex: 1 1 0;
+        min-width: 220px;
+      }
+      .footer-col h4 {
+        font-weight: 500;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+      }
+      .footer-col p,
+      .footer-col ul {
+        margin: 0;
+        color: white;
+        font-weight: 300;
+        line-height: 1.8;
+      }
+      .footer-col ul {
+        list-style: none;
+        padding: 0;
+      }
+      .footer-col ul li {
+        margin-bottom: 1px;
+      }
+      .footer-col ul li a {
+        color: #bbb;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 300;
+      }
+      .footer-col ul li a:hover {
+        color: #fff;
+      }
+      .footer-social {
+        margin-top: 18px;
+      }
+      .footer-social a {
+        color: #fff;
+        margin-right: 16px;
+        font-size: 1.4rem;
+        text-decoration: none;
+        vertical-align: middle;
+      }
+      .footer-social a:hover {
+        color: #e2b873;
+      }
+      .footer-credit {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 30px;
+        font-size: 0.9rem;
+        color: #999;
+        font-weight: 300;
+      }
+      .footer-credit span {
+        color: white !important;
+      }
+      .footer-row {
+        border-bottom: 1px solid white !important;
+      }
+      .footer-custom p a[href^="mailto:"] {
+        color: white !important;
+      }
+      @media (max-width: 992px) {
+        .footer-row {
+          flex-wrap: wrap;
+          gap: 30px;
+        }
+        .footer-col {
+          min-width: 100%;
+        }
+        .footer-credit {
+          flex-direction: column;
+          gap: 10px;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ================= NAVBAR (struktur dari index.html) ================= -->
+    <header class="header bg-dark text-white">
+      <div class="container py-3 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <img src="image/logo_kopisenja.jpg" alt="Logo_KopiSenja" class="header-logo me-3" />
+          <h5 class="mb-0">Kopi Senja</h5>
+        </div>
+        <nav>
+          <ul class="nav">
+            <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="menu.html">Menu</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="about.html">Tentang Kami</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="kontak.html">Kontak</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ======================= HERO ======================= -->
+    <header class="hero">
+      <h1>MENU</h1>
+    </header>
+
+    <!-- ======================= INTRO ======================= -->
+    <div class="section-intro">
+      <p>Buka setiap hari bagi tamu hotel dan umum.<br />Senin–Minggu: 10.30 – 22.00</p>
+      <strong>Ala Carte Menu</strong>
+    </div>
+
+    <!-- ======================= SECTIONS ======================= -->
+    <div class="menu-section">
+      <h2>Kopi</h2>
+      <div class="menu-grid" id="kopi"></div>
+    </div>
+    <div class="menu-section">
+      <h2>Non-Kopi</h2>
+      <div class="menu-grid" id="nonkopi"></div>
+    </div>
+    <div class="menu-section">
+      <h2>Dessert</h2>
+      <div class="menu-grid" id="dessert"></div>
+    </div>
+    <div class="menu-section">
+      <h2>Camilan</h2>
+      <div class="menu-grid" id="camilan"></div>
+    </div>
+    <div class="menu-section">
+      <h2>Makanan</h2>
+      <div class="menu-grid" id="makanan"></div>
+    </div>
+
+    <!-- ======================= FOOTER (sama seperti index.html) ======================= -->
+    <footer class="footer-custom">
+      <div class="container-footer">
+        <div class="footer-row">
+          <div class="footer-col">
+            <h4>Hubungi Kami</h4>
+            <p>
+              Four Points by Sheraton,<br />
+              Pakuwon Indah (Jl. Raya Lontar No.2, Babatan, Surabaya, East Java)<br />
+              Surabaya, Jawa Timur 60216<br />
+              Telp: 031 3094951<br />
+              Email: <a href="mailto:kopisenja@email.com" style="color: #bbb">kopisenja@email.com</a>
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Jam Operasional</h4>
+            <ul>
+              <li>Senin–Kamis: 08.00–22.00</li>
+              <li>Jumat–Sabtu: 08.00–20.00</li>
+              <li>Minggu: 09.00–20.00</li>
+            </ul>
+            <h4>Menu</h4>
+            <ul>
+              <li>Coffe</li>
+              <li>Non-Coffe</li>
+              <li>Desert</li>
+              <li>Snack</li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Tautan</h4>
+            <ul>
+              <li><a href="index.html">Home</a></li>
+              <li><a href="menu.html">Menu</a></li>
+              <li><a href="about.html">Tentang Kami</a></li>
+              <li><a href="kontak.html">Kontak</a></li>
+            </ul>
+            <div class="footer-social">
+              <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+              <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-credit">
+          <span>&copy; 2025 All Rights Reserved.</span>
+          <span>Powered by Kopi Senja</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ======================= DATA & RENDER ======================= -->
+    <script>
+      const data = {
+        kopi: [
+          { name: "Americano", price: "15k", img: "image/latte.jpg" },
+          { name: "Latte", price: "20k", img: "image/americano.jpg" },
+          { name: "Cappuccino", price: "20k", img: "image/cappucino.jpg" },
+          { name: "Espresso", price: "15k", img: "image/espresso.jpg" },
+        ],
+        nonkopi: [
+          { name: "Matcha Latte", price: "22k", img: "image/latte.jpg" },
+          { name: "Red Velvet", price: "22k", img: "image/latte.jpg" },
+          { name: "Lemon Tea", price: "12k", img: "image/latte.jpg" },
+          { name: "Chocolate", price: "18k", img: "image/latte.jpg" },
+        ],
+        dessert: [
+          { name: "Croissant", price: "15k", img: "image/latte.jpg" },
+          { name: "Brownies", price: "12k", img: "image/latte.jpg" },
+          { name: "Cheesecake", price: "25k", img: "image/latte.jpg" },
+          { name: "Donat Coklat", price: "10k", img: "image/latte.jpg" },
+        ],
+        camilan: [
+          { name: "French Fries", price: "18k", img: "image/latte.jpg" },
+          { name: "Roti Bakar", price: "15k", img: "image/latte.jpg" },
+          { name: "Onion Rings", price: "15k", img: "image/latte.jpg" },
+          { name: "Cireng", price: "12k", img: "image/latte.jpg" },
+        ],
+        makanan: [
+          { name: "Lasagna", price: "30k", img: "image/latte.jpg" },
+          { name: "Chicken Katsu", price: "28k", img: "image/latte.jpg" },
+          { name: "Chicken Steak", price: "35k", img: "image/latte.jpg" },
+          { name: "Hotdog Jumbo", price: "20k", img: "image/latte.jpg" },
+        ],
+      };
+
+      function renderMenu(section, items) {
+        const container = document.getElementById(section);
+        items.forEach((it) => {
+          const div = document.createElement("div");
+          div.className = "menu-item";
+          div.innerHTML = `
+            <img src="${it.img}" alt="${it.name}">
+            <div class="price-badge">${it.price}</div>
+            <h3>${it.name}</h3>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        Object.keys(data).forEach((sec) => {
+          const grid = document.getElementById(sec);
+          if (grid) renderMenu(sec, data[sec]);
+        });
+      });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
