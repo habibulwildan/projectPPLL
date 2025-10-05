@@ -1,0 +1,153 @@
+.background-set {
+  background-size: cover;
+  min-height: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Padding settings */
+.pd-4px {padding: 4px;}
+.pd-8px {padding: 8px;}
+.pd-12px {padding: 12px;}
+.pd-16px {padding: 16px;}
+.pd-20px {padding: 20px;}
+.pd-24px {padding: 24px;}
+.pd-28px {padding: 28px;}
+.pd-32px {padding: 32px;}
+
+/* Margin settings */
+.mn-8px {margin: 8px;}
+.mn-12px {margin: 12px;}
+
+/* Auto LR margin with max-width */
+.mn-lr-900px {
+  margin-left: auto;
+  margin-right: auto;
+  width: 900px;
+  max-width: 100%;
+}
+.mn-lr-1024px {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1024px;
+  max-width: 100%;
+}
+.mn-lr-1280px {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1280px;
+  max-width: 100%;
+}
+.mn-lr-1366px {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1366px;
+  max-width: 100%;
+}
+
+.sn-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.sn-info-1 {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 100vh;
+}
+.sn-info-2 {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 100vh;
+}
+.sn-info-2-1 {
+  align-self: center;
+}
+.sn-info-3 {
+  text-align: left;
+  display: flex;
+  justify-content: baseline;
+  align-items: stretch;
+  min-height: 100vh;
+}
+
+.link-list a {
+  text-decoration: none;
+}
+.list-float {
+  padding-inline-start: 0;
+  display: inline-block;
+}
+.list-float li {
+  padding: 0px 10px;
+  float: left;
+  margin: 0;
+}
+
+.profile-others {
+  width: 400px;
+  height: 200px;
+  object-fit: cover;
+}
+
+.fl-left-addr {
+  float: left;
+} .fl-right-addr {
+  float: right;
+}
+
+.destination-address-info li {
+  display: inline-block;
+  position: relative;
+}
+
+.min-h-300px {
+  min-height: 300px;
+}
+
+.min-h-500px {
+  min-height: 500px;
+}
+
+.min-w-400px {
+  min-width: 400px;
+  max-width: 100%;
+}
+
+.max-w-400px {
+  max-width: 400px;
+}
+
+.center-text {
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .sn-center {
+    flex-direction: column-reverse;
+  }
+  .sn-info-1, .sn-info-2 {
+    flex-direction: column;
+  }
+
+  .profile-others {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .fl-left-addr {
+    float: none;
+  } .fl-right-addr {
+    float: none;
+  }
+}
+
+@media (max-width: 1280px) {
+  .sn-info-3 {
+    flex-direction: column;
+  }
+}
