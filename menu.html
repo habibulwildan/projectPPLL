@@ -81,7 +81,7 @@
         justify-content: center;
         text-align: center;
         color: #fff;
-        background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35)), url("image/header.jpg");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35)), url("assets/header.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -323,12 +323,12 @@
     <header class="header bg-dark text-white">
       <div class="container py-3 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-          <img src="image/logo_kopisenja.jpg" alt="Logo_KopiSenja" class="header-logo me-3" />
+          <img src="assets/logo_kopisenja.jpg" alt="Logo_KopiSenja" class="header-logo me-3" />
           <h5 class="mb-0">Kopi Senja</h5>
         </div>
         <nav>
           <ul class="nav">
-            <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="index.html">Home</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="menu.html">Menu</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="about.html">Tentang Kami</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="kontak.html">Kontak</a></li>
@@ -424,36 +424,31 @@
     <script>
       const data = {
         kopi: [
-          { name: "Americano", price: "15k", img: "image/latte.jpg" },
-          { name: "Latte", price: "20k", img: "image/americano.jpg" },
-          { name: "Cappuccino", price: "20k", img: "image/cappucino.jpg" },
-          { name: "Espresso", price: "15k", img: "image/espresso.jpg" },
+          { name: "Americano", price: "15k", img: "assets/latte.jpg" },
+          { name: "Latte", price: "20k", img: "assets/americano.jpg" },
+          { name: "Cappuccino", price: "20k", img: "assets/cappucino.jpg" },
+          { name: "Espresso", price: "15k", img: "assets/espresso.jpg" },
         ],
         nonkopi: [
-          { name: "Matcha Latte", price: "22k", img: "image/latte.jpg" },
-          { name: "Red Velvet", price: "22k", img: "image/latte.jpg" },
-          { name: "Lemon Tea", price: "12k", img: "image/latte.jpg" },
-          { name: "Chocolate", price: "18k", img: "image/latte.jpg" },
+          { name: "Matcha Latte", price: "22k", img: "assets/matcha.jpg" },
+          { name: "Red Velvet", price: "22k", img: "assets/red-velvet-latte.jpg" },
+          { name: "Lemon Tea", price: "12k", img: "assets/lemontea.jpg" },
+          { name: "Chocolate", price: "18k", img: "assets/chocolate.jpg" },
         ],
         dessert: [
-          { name: "Croissant", price: "15k", img: "image/latte.jpg" },
-          { name: "Brownies", price: "12k", img: "image/latte.jpg" },
-          { name: "Cheesecake", price: "25k", img: "image/latte.jpg" },
-          { name: "Donat Coklat", price: "10k", img: "image/latte.jpg" },
+          { name: "Croissant", price: "15k", img: "assets/croisant.jpg" },
+          { name: "Brownies", price: "12k", img: "assets/brownies.jpg" },
+          { name: "Cheesecake", price: "25k", img: "assets/Cheesecake.jpg" },
+          { name: "Donat Coklat", price: "10k", img: "assets/Donat Coklat.jpg" },
         ],
         camilan: [
-          { name: "French Fries", price: "18k", img: "image/latte.jpg" },
-          { name: "Roti Bakar", price: "15k", img: "image/latte.jpg" },
-          { name: "Onion Rings", price: "15k", img: "image/latte.jpg" },
-          { name: "Cireng", price: "12k", img: "image/latte.jpg" },
-        ],
-        makanan: [
-          { name: "Lasagna", price: "30k", img: "image/latte.jpg" },
-          { name: "Chicken Katsu", price: "28k", img: "image/latte.jpg" },
-          { name: "Chicken Steak", price: "35k", img: "image/latte.jpg" },
-          { name: "Hotdog Jumbo", price: "20k", img: "image/latte.jpg" },
+          { name: "French Fries", price: "18k", img: "assets/Homemade-French-Fries_8.jpg" },
+          { name: "Roti Bakar", price: "15k", img: "assets/rotibakar.jpeg" },
+          { name: "Onion Rings", price: "15k", img: "assets/onionrings.jpg" },
+          { name: "Cireng", price: "12k", img: "assets/cireng.jpg" },
         ],
       };
+
 
       function renderMenu(section, items) {
         const container = document.getElementById(section);
