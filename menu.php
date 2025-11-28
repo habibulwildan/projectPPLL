@@ -2,20 +2,25 @@
 // menu.php
 require_once __DIR__ . '/config.php';
 
+// pastikan charset benar
+if (isset($conn) && $conn) {
+    mysqli_set_charset($conn, 'utf8mb4');
+}
+
 // Ambil kategori aktif
 $categories = [];
 $catSql = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY id";
-if ($res = $mysqli->query($catSql)) {
-    while ($r = $res->fetch_assoc()) {
+if ($res = mysqli_query($conn, $catSql)) {
+    while ($r = mysqli_fetch_assoc($res)) {
         $cid = (int)$r['id'];
         $categories["cat_{$cid}"] = [
             'id' => $cid,
             'name' => $r['name'],
         ];
     }
-    $res->free();
+    mysqli_free_result($res);
 } else {
-    error_log("Failed to fetch categories: " . $mysqli->error);
+    error_log("Failed to fetch categories: " . mysqli_error($conn));
 }
 
 // Ambil menu items
@@ -34,8 +39,8 @@ $sql = "
   WHERE m.is_available = 1
   ORDER BY c.id, m.name
 ";
-if ($res = $mysqli->query($sql)) {
-    while ($row = $res->fetch_assoc()) {
+if ($res = mysqli_query($conn, $sql)) {
+    while ($row = mysqli_fetch_assoc($res)) {
         $cid = (int)$row['category_id'];
         $key = "cat_{$cid}";
 
@@ -50,9 +55,9 @@ if ($res = $mysqli->query($sql)) {
         if (!isset($data[$key])) $data[$key] = [];
         $data[$key][] = $row;
     }
-    $res->free();
+    mysqli_free_result($res);
 } else {
-    error_log("Failed to fetch menus: " . $mysqli->error);
+    error_log("Failed to fetch menus: " . mysqli_error($conn));
 }
 
 // Pastikan setiap kategori ada di data
@@ -309,7 +314,9 @@ document.addEventListener('click', function(e){
     btn.disabled = false;
   }, 800);
 });
+
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
