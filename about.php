@@ -8,70 +8,8 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papbJs7X9H0EltiqoZb4b+wnRZk+3HHLji0FslRGlP5e4l+77jEjczy4s8u+09CnVcA4VbEBWbw126C5d3u1Vg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="css/style.css">
         <style>
-            html, body {
-                height: 100%;
-                margin: 0;
-            }
-
-            body {
-                background-color: #f8f9fa;
-                font-family: 'Georgia', sans-serif;
-                color: #333;
-                justify-content: space-between;
-            }
-
-            .header {
-                background: linear-gradient(to bottom, #343a40, #495057);
-                position: fixed;
-                width: 100%;
-                top: 0;
-                z-index: 1000;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            }
-
-            .header h5 {
-                font-weight: 800; /* Makes the header text bold */
-            }
-
-            .header-logo {
-                width: 60px;
-                height: auto;
-                border-radius: 50%;
-                margin-left: -40px;
-            }
-
-            .nav .nav-link {
-                margin: 0 10px;
-                /* font-weight: 500; */
-                font-weight: 700; /* make navbar text bold */
-                font-size: 1.1rem; /* optionally increase font size a bit */
-                padding: 1rem 1.2rem; /* increase padding vertically and horizontally */
-            }
-
-            .btn-outline-light {
-                border-radius: 20px;
-                margin-left: 15px;
-                padding: 8px 20px;
-                font-weight: bold;
-                transition: all 0.3s ease;
-            }
-
-            .btn-outline-light:hover {
-                background-color: #ffffff;
-                color: black;
-                border-color: #ffffff;
-            }
-
-            .btn-outline-light a {
-                color: white;
-                text-decoration: none;
-            }
-
-            .btn-outline-light a:hover {
-                color: black;
-            }
-
             .hero-section {
                 height: 100vh;
                 background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), 
@@ -552,127 +490,15 @@
             gap: 10px;
             text-align: center;
             }
-
-            .navbar-toggler {
-            background-color: #fff;  
-            border-radius: 5px;
-            padding: 4px 8px;
-            }
-
-            .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%280,0,0,1%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
-            }
-            @media (max-width: 992px) {
-            .header {
-                position: relative; 
-            }
-
-            .navbar-collapse {
-                position: relative; 
-                background-color: #343a40;
-                padding: 10px 0;
-                text-align: left !important; 
-            }
-            }
-            .menu {
-            display: none;
-            flex-direction: column;
-            background: #2c2f33;
-            position: absolute;
-            top: 60px;   
-            left: 20px; 
-            padding: 10px;
-            border-radius: 5px;
-            align-items: flex-start !important; 
-            }
-
-            .menu a {
-            text-decoration: none;
-            color: white;
-            padding: 8px 15px;
-            text-align: left;  
-            display: block;
-            }
-
-            @media (min-width: 768px) {
-            .menu {
-                display: flex !important;
-                position: static;
-                flex-direction: row;
-                background: none;
-                padding: 0;
-            }
-
-            .menu a {
-                padding: 0 15px;
-            }
-         }
-            .navbar-brand h5 {
-            font-size: 1.2rem;   
-            font-weight: bold;  
-            margin: 0;
-            color: #fff;        
-            }
-
-            /* Link menu */
-            .navbar-nav .nav-link {
-            font-size: 1rem;     
-            font-weight: bold;  
-            color: #fff !important; 
-            padding: 8px 15px;   
-            }
-
-            .navbar-nav .nav-link:hover {
-            color: #f0c040 !important; 
-            }
-
-
-            
     </style>
     </head>
     <body>
-        <header class="header bg-dark text-white">
-            <div class="container py-3">
-                <nav class="navbar navbar-expand-lg navbar-dark">
-                <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="./img/logo_kopisenja.jpg" alt="Logo_KopiSenja" class="header-logo me-2">
-                    <h5 class="mb-0">Kopi Senja</h5>
-                </a>
-
-                <button class="navbar-toggler" type="button" 
-                        data-bs-toggle="collapse" data-bs-target="#navbarMenu" 
-                        aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarMenu">
-                    <ul class="nav ms-lg-auto flex-column flex-lg-row text-lg-end">
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="index.html">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="menu.html">Menu</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="about.html">Tentang Kami</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="kontak.html">Kontak</a>
-                    </li>
-                    </ul>
-                </div>
-                </nav>
-            </div>
-        </header>
-
-
-
+        <?php include 'partials/navbar.php'; ?>
         <section class="hero-section text-white">
             <div class="hero-content">
                 <p class="hero-subtitle">Tentang Kami</p>
             </div>
         </section>
-
         <section class="authentic-menu-section">
             <div class="container-authentic">
                 <div class="text-authentic">
@@ -686,55 +512,7 @@
             Mari hadir dan rasakan pengalaman berbeda hanya di Kopi Senja.</p>
             </div>
         </section>
-
-        <footer class="footer-custom">
-            <div class="container-footer">
-                <div class="footer-row">
-                    <div class="footer-col">
-                        <h4>Hubungi Kami</h4>
-                        <p>
-                            Four Points by Sheraton,<br>
-                            Pakuwon Indah (Jl. Raya Lontar No.2, Babatan, Surabaya, East Java)<br>
-                            Surabaya, Jawa Timur 60216<br>
-                            Telp: 031 3094951<br>
-                            Email: <a href="mailto:kopisenja@email.com" style="color:#bbb;">kopisenja@email.com</a>
-                        </p>
-                    </div>
-                    <div class="footer-col">
-                        <h4>Jam Operasional</h4>
-                        <ul>
-                            <li>Senin-Kamis: 08.00-22.00</li>
-                            <li>Jumat-Sabtu: 08.00-20.00</li>
-                            <li>Minggu: 09.00-20.00</li>
-                        </ul>
-                        <h4>Menu</h4>
-                        <ul>
-                            <li>Coffe</li>
-                            <li>Non-Coffe</li>
-                            <li>Desert</li>
-                            <li>Snack</li>
-                        </ul>
-                    </div>
-                    <div class="footer-col">
-                        <h4>Tautan</h4>
-                        <ul>
-                            <li><a href="home.html">Home</a></li>
-                            <li><a href="menu.html">Menu</a></li>
-                            <li><a href="about.html">Tentang Kami</a></li>
-                            <li><a href="kontak.html">Kontak</a></li>
-                        </ul>
-                        <div class="footer-social">
-                            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="footer-credit">
-                    <span>&copy; 2025 All Rights Reserved.</span>
-                    <span>Powered by Kopi Senja</span>
-                </div>
-            </div>
-        </footer>
+        <?php include 'partials/footer.php'; ?>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
