@@ -6,8 +6,8 @@
 <header class="header">
   <div class="container-navbar">
     <nav class="navbar navbar-expand-lg navbar-dark">
-      <a class="navbar-brand d-flex align-items-center" href="/KopiSenja/index.php">
-        <img src="/KopiSenja/img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
+      <a class="navbar-brand d-flex align-items-center" href="/projectPPLL/index.php">
+        <img src="/projectPPLL/img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
         <h5 class="mb-0">Kopi Senja</h5>
       </a>
 
@@ -19,16 +19,16 @@
       <div class="collapse navbar-collapse" id="navbarMenu">
         <ul class="nav ms-lg-auto flex-column flex-lg-row text-lg-end align-items-center">
           <li class="nav-item">
-            <a class="nav-link text-white" href="/KopiSenja/index.php">Home</a>
+            <a class="nav-link text-white" href="/projectPPLL/index.php">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="/KopiSenja/menu.php">Menu</a>
+            <a class="nav-link text-white" href="/projectPPLL/menu.php">Menu</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="/KopiSenja/about.php">Tentang Kami</a>
+            <a class="nav-link text-white" href="/projectPPLL/about.php">Tentang Kami</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="/KopiSenja/kontak.php">Kontak</a>
+            <a class="nav-link text-white" href="/projectPPLL/kontak.php">Kontak</a>
           </li>
 
           <!-- RIGHT SIDE ICONS (profile + cart) -->
@@ -45,7 +45,7 @@
             </a>
 
             <!-- Profile -->
-            <a class="nav-link" href="/KopiSenja/login.php" id="profileLink" aria-label="Profile" title="Profil">
+            <a class="nav-link" href="/projectPPLL/login.php" id="profileLink" aria-label="Profile" title="Profil">
               <i data-lucide="user" class="icon-svg"></i>
             </a>
           </li>
