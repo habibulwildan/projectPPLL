@@ -21,15 +21,20 @@ $admin_email = $_SESSION['admin_email'] ?? "admin@example.com";
 
 $total_users = "Error"; // Default error value
 $sales_today = 0; // Total penjualan hari ini
-$sales_alltime = 0; // Tambahan: Total penjualan sepanjang masa (untuk debugging)
+$sales_alltime = 0; // Total penjualan sepanjang masa (untuk debugging)
+$new_products_this_month = 0; // BARU: Produk baru bulan ini
 $latest_orders = []; // Default array kosong
 $error_message = "";
-$sales_today_debug_info = ""; // Tambahan: Untuk menyimpan info debug SQL
+$sales_today_debug_info = ""; // Untuk menyimpan info debug SQL
 
 // ==========================================================
 // 2. LOGIKA PENGAMBILAN DATA (Fetch Data) - MENGGUNAKAN MYSQLi
 // ==========================================================
 if ($conn) {
+    // PENTING: Set zona waktu server MySQLi (misal: WIB = +07:00) 
+    // Ini membantu memastikan CURDATE() sesuai dengan waktu yang Anda lihat
+    mysqli_query($conn, "SET time_zone = '+07:00'");
+
     try {
         // --- 2.1. AMBIL TOTAL PENGGUNA ---
         $sql_users = "SELECT COUNT(id) AS total_count FROM users";
@@ -44,8 +49,8 @@ if ($conn) {
             $total_users = "Error Kueri";
         }
         
-        // --- 2.2. AMBIL TOTAL PENJUALAN HARI INI ---
-        $sql_sales_today = "SELECT SUM(total_amount) AS total_sales FROM orders WHERE DATE(created_at) = CURDATE()";
+        // --- 2.2. AMBIL TOTAL PENJUALAN HARI INI (Menggunakan order_date) ---
+        $sql_sales_today = "SELECT SUM(total_amount) AS total_sales FROM orders WHERE DATE(order_date) = CURDATE()";
         $result_sales_query = mysqli_query($conn, $sql_sales_today);
         
         if ($result_sales_query) {
@@ -62,7 +67,7 @@ if ($conn) {
             $sales_today = 0;
         }
 
-        // --- 2.3. AMBIL TOTAL PENJUALAN KESELURUHAN (Tambahan untuk Debugging) ---
+        // --- 2.3. AMBIL TOTAL PENJUALAN KESELURUHAN ---
         $sql_sales_alltime = "SELECT SUM(total_amount) AS total_sales FROM orders";
         $result_alltime_query = mysqli_query($conn, $sql_sales_alltime);
         
@@ -71,13 +76,32 @@ if ($conn) {
             mysqli_free_result($result_alltime_query);
             $sales_alltime = $result_alltime['total_sales'] ?? 0;
         } else {
-            // Ini biasanya menunjukkan masalah serius pada kolom total_amount atau tabel orders.
             $error_message .= "Kueri Total Keseluruhan GAGAL: " . mysqli_error($conn) . ". ";
             $sales_alltime = 0;
         }
 
-        // --- 2.4. AMBIL PESANAN TERBARU ---
-        $sql_orders = "SELECT id, customer_name, status, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 3";
+        // --- 2.4. BARU: AMBIL TOTAL PRODUK BARU BULAN INI (Menggunakan menus.created_at) ---
+        // Mencari semua baris di tabel 'menus' di mana bulan dari created_at sama dengan bulan saat ini
+        // Contoh: WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
+        $sql_new_products = "
+            SELECT COUNT(id) AS total_new 
+            FROM menus 
+            WHERE MONTH(created_at) = MONTH(CURDATE()) 
+            AND YEAR(created_at) = YEAR(CURDATE())
+        ";
+        $result_new_products_query = mysqli_query($conn, $sql_new_products);
+
+        if ($result_new_products_query) {
+            $result_new_products = mysqli_fetch_assoc($result_new_products_query);
+            mysqli_free_result($result_new_products_query);
+            $new_products_this_month = $result_new_products['total_new'] ?? 0;
+        } else {
+            $error_message .= "Kueri Produk Baru GAGAL: " . mysqli_error($conn) . ". ";
+            $new_products_this_month = 0;
+        }
+        
+        // --- 2.5. AMBIL PESANAN TERBARU ---
+        $sql_orders = "SELECT id, customer_name, status, total_amount, order_date FROM orders ORDER BY order_date DESC LIMIT 3";
         $result_orders_query = mysqli_query($conn, $sql_orders);
         
         if ($result_orders_query) {
@@ -102,6 +126,7 @@ if ($conn) {
         $total_users = "Error Fatal";
         $sales_today = 0;
         $sales_alltime = 0;
+        $new_products_this_month = 0;
         $latest_orders = [];
     }
 } else {
@@ -110,6 +135,7 @@ if ($conn) {
     $total_users = "Error Config";
     $sales_today = 0;
     $sales_alltime = 0;
+    $new_products_this_month = 0;
 }
 
 // Tutup koneksi MySQLi jika berhasil dibuat
@@ -119,6 +145,9 @@ if (isset($conn) && $conn) {
 
 // Fungsi pembantu untuk memformat nilai rupiah dengan 'juta' jika angkanya besar
 function format_rupiah_sales($number) {
+    // Pastikan input adalah angka
+    if (!is_numeric($number)) return 'Rp 0';
+    
     if ($number >= 1000000) {
         // Format ke 'X Juta'
         return 'Rp ' . number_format($number / 1000000, 1, ',', '.') . ' Juta';
@@ -255,11 +284,11 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
+            <a href="pengguna.php" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span>Pengguna</span>
             </a>
-            <a href="#" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
+            <a href="products.php" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
                 <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                 <span>Produk</span>
             </a>
@@ -290,7 +319,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
             </button>
             
             <!-- Judul (Ambil sisa ruang, kecuali untuk info user) -->
-            <h1 class="text-lg sm:text-2xl font-bold text-text-light flex-grow">Selamat Datang, <?= htmlspecialchars($admin_name) ?>!</h1>
+           
 
             <!-- User Info and Avatar -->
             <div class="flex items-center space-x-3 ml-auto">
@@ -320,8 +349,8 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                 <p class="font-semibold">INFO DEBUG PENJUALAN:</p>
                 <ul class="list-disc list-inside text-sm mt-1">
                     <li>**Total Penjualan Sepanjang Masa:** <?= htmlspecialchars($sales_alltime_formatted) ?></li>
-                    <li>**Info Kueri Hari Ini:** <?= htmlspecialchars($sales_today_debug_info) ?></li>
-                    <li>**Catatan:** Jika Total Keseluruhan ada, tapi Hari Ini Rp 0, kemungkinan besar masalahnya adalah **Waktu/Tanggal** di data Anda.</li>
+                    <li>**Info Kueri Hari Ini (Filter order_date):** <?= htmlspecialchars($sales_today_debug_info) ?></li>
+                    <li>**CATATAN PENTING:** Kueri kini menggunakan kolom **`order_date`** (bukan `created_at`) untuk menghitung Penjualan Hari Ini.</li>
                 </ul>
             </div> -->
             <!-- END DEBUG ALERT -->
@@ -349,10 +378,11 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                     <p class="text-gray-400 mt-1">Penjualan Hari Ini</p>
                 </div>
 
-                <!-- Card 3: Produk Baru (Placeholder) -->
+                <!-- Card 3: Produk Baru BULAN INI (DARI DATABASE menus) -->
                 <div class="bg-primary-dark p-6 rounded-xl shadow-lg border-t-4 border-accent-gold transform hover:scale-[1.02] transition duration-300">
                     <div class="flex justify-between items-center">
-                        <span class="text-2xl font-bold text-text-light">12</span>
+                        <!-- TAMPILKAN DATA TOTAL PRODUK BARU BULAN INI -->
+                        <span class="text-2xl font-bold text-text-light"><?= htmlspecialchars(number_format($new_products_this_month)) ?></span>
                         <i data-lucide="package" class="w-8 h-8 text-secondary-gold opacity-75"></i>
                     </div>
                     <p class="text-gray-400 mt-1">Produk Baru Bulan Ini</p>
@@ -492,7 +522,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
             } else {
                 // MOBILE: Default Tertutup
                 sidebar.classList.remove('active');
-                sidebarOverlay.classList.add('hidden');
+                sidebar.classList.remove('is-closed');
                 mainContent.classList.remove('sidebar-closed'); // Pastikan tidak ada padding desktop
             }
         }
