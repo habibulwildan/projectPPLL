@@ -1,4 +1,6 @@
 <?php
+session_start(); // Mulai session
+
 // panggil koneksi database
 include 'config.php';
 
@@ -31,18 +33,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Jika validasi lulus, cek kecocokan dengan database
     if ($valid) {
-        // Siapkan query
-        $stmt = $conn->prepare("SELECT password FROM users WHERE email = ?");
+        // Siapkan query untuk ambil id, nama, dan password hash
+        $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($hash_password);
+            $stmt->bind_result($user_id, $user_name, $hash_password);
             $stmt->fetch();
-            // Verifikasi password
+
+            // Verifikasi password dengan MD5 (sesuai penyimpanan di database)
             if (md5($password) === $hash_password) {
-                // Login sukses, redirect ke index.php
+                // Login sukses, simpan session user
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['user_email'] = $email;
+                $_SESSION['user_name'] = $user_name;
+
+                // Redirect ke index.php
                 header("Location: index.php");
                 exit;
             } else {
