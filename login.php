@@ -33,25 +33,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Jika validasi lulus, cek kecocokan dengan database
     if ($valid) {
-        // Siapkan query untuk ambil id, nama, dan password hash
-        $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = ?");
+        // Siapkan query untuk ambil id, name, password, dan role_id
+        $stmt = $conn->prepare("SELECT id, name, password, role_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($user_id, $user_name, $hash_password);
+            $stmt->bind_result($user_id, $user_name, $hash_password, $role_id);
             $stmt->fetch();
 
             // Verifikasi password dengan MD5 (sesuai penyimpanan di database)
             if (md5($password) === $hash_password) {
-                // Login sukses, simpan session user
+                // Login sukses, simpan SEMUA session user
                 $_SESSION['user_id'] = $user_id;
                 $_SESSION['user_email'] = $email;
                 $_SESSION['user_name'] = $user_name;
+                $_SESSION['user_role_id'] = $role_id;
+                $_SESSION['user_role'] = $role_id == 1 ? 'customer' : ($role_id == 2 ? 'kasir' : 'admin');
 
-                // Redirect ke index.php
-                header("Location: index.php");
+                // Role-based redirect
+                switch ($role_id) {
+                    case 1: // Customer
+                        header("Location: index.php");
+                        break;
+                    case 2: // Kasir
+                        header("Location: kasir_index.php");
+                        break;
+                    case 3: // Admin
+                        header("Location: admin_index.php");
+                        break;
+                    default:
+                        header("Location: index.php"); // Default ke customer
+                }
                 exit;
             } else {
                 $error_email = "Kombinasi email dan password salah.";
