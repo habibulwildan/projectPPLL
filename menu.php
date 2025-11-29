@@ -1,322 +1,168 @@
 <?php
-// menu.php
-require_once __DIR__ . '/config.php';
+// partials/navbar.php
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config.php';
 
-// pastikan charset benar
-if (isset($conn) && $conn) {
-    mysqli_set_charset($conn, 'utf8mb4');
-}
+$mysqli = $conn ?? $mysqli ?? null;
+$cartCount = 0;
+$isLogged = false;
+$displayName = null;
 
-// Ambil kategori aktif
-$categories = [];
-$catSql = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY id";
-if ($res = mysqli_query($conn, $catSql)) {
-    while ($r = mysqli_fetch_assoc($res)) {
-        $cid = (int)$r['id'];
-        $categories["cat_{$cid}"] = [
-            'id' => $cid,
-            'name' => $r['name'],
-        ];
+if ($mysqli) {
+    // Cari user_id dari session
+    $user_id = $_SESSION['user_id'] ?? null;
+
+    // Fallback cari user berdasar email
+    if (!$user_id && !empty($_SESSION['user_email'])) {
+        $email = $_SESSION['user_email'];
+        $stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+        if ($stmt) {
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            if (method_exists($stmt, 'get_result')) {
+                $r = $stmt->get_result();
+                if ($r && $r->num_rows) {
+                    $row = $r->fetch_assoc();
+                    $user_id = (int)$row['id'];
+                }
+            } else {
+                $stmt->bind_result($uid);
+                if ($stmt->fetch()) $user_id = (int)$uid;
+            }
+            $stmt->close();
+        }
     }
-    mysqli_free_result($res);
-} else {
-    error_log("Failed to fetch categories: " . mysqli_error($conn));
-}
 
-// Ambil menu items
-$data = [];
-$sql = "
-  SELECT 
-    m.id,
-    m.name,
-    m.description,
-    m.price,
-    m.image,
-    m.category_id,
-    c.name AS category_name
-  FROM menus m
-  JOIN categories c ON c.id = m.category_id
-  WHERE m.is_available = 1
-  ORDER BY c.id, m.name
-";
-if ($res = mysqli_query($conn, $sql)) {
-    while ($row = mysqli_fetch_assoc($res)) {
-        $cid = (int)$row['category_id'];
-        $key = "cat_{$cid}";
+    if ($user_id) {
+        $isLogged = true;
 
-        // fallback image jika kosong atau file tidak ada
-        $imagePath = $row['image'] ?? '';
-        if (empty($imagePath) || !file_exists(__DIR__ . '/' . $imagePath)) {
-            $row['image'] = 'img/americano.jpg'; // pastikan ada file ini
+        // Ambil nama
+        $displayName = $_SESSION['user_name'] ?? null;
+        if (!$displayName) {
+            $stmt = $mysqli->prepare("SELECT name,email FROM users WHERE id = ? LIMIT 1");
+            if ($stmt) {
+                $stmt->bind_param("i", $user_id);
+                $stmt->execute();
+                if (method_exists($stmt, 'get_result')) {
+                    $r = $stmt->get_result();
+                    if ($r && $r->num_rows) {
+                        $u = $r->fetch_assoc();
+                        $displayName = $u['name'] ?: $u['email'];
+                    }
+                } else {
+                    $stmt->bind_result($name, $email);
+                    if ($stmt->fetch()) $displayName = $name ?: $email;
+                }
+                $stmt->close();
+            }
         }
 
-        $row['category_name'] = $row['category_name'] ?? '';
-
-        if (!isset($data[$key])) $data[$key] = [];
-        $data[$key][] = $row;
+        // Hitung jumlah item cart
+        $stmt = $mysqli->prepare("SELECT COUNT(id) FROM carts WHERE user_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            if (method_exists($stmt, 'get_result')) {
+                $r = $stmt->get_result();
+                if ($r && $r->num_rows) {
+                    $c = $r->fetch_assoc();
+                    $cartCount = (int)$c['COUNT(id)'];
+                }
+            } else {
+                $stmt->bind_result($cnt);
+                if ($stmt->fetch()) $cartCount = (int)$cnt;
+            }
+            $stmt->close();
+        }
     }
-    mysqli_free_result($res);
-} else {
-    error_log("Failed to fetch menus: " . mysqli_error($conn));
 }
-
-// Pastikan setiap kategori ada di data
-foreach ($categories as $key => $meta) {
-    if (!isset($data[$key])) $data[$key] = [];
-}
-
-// Encode untuk JS
-$data_json = json_encode($data, JSON_UNESCAPED_UNICODE);
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kopi Senja – Menu</title>
-    <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
 
-    <!-- Bootstrap & Fonts -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="css/style.css?v=1.0" />
-</head>
-<body>
-<?php if (file_exists(__DIR__ . '/partials/navbar.php')) include __DIR__ . '/partials/navbar.php'; ?>
+<header class="header">
+  <div class="container-navbar">
+    <nav class="navbar navbar-expand-lg navbar-dark">
 
-<header class="hero">
-    <h1>MENU</h1>
+      <a class="navbar-brand d-flex align-items-center" href="./index.php">
+        <img src="./img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
+        <h5 class="mb-0">Kopi Senja</h5>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarMenu">
+
+        <ul class="nav ms-lg-auto flex-column flex-lg-row text-lg-end align-items-center">
+
+          <li class="nav-item"><a class="nav-link text-white" href="./index.php">Home</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./menu.php">Menu</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./about.php">Tentang Kami</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./kontak.php">Kontak</a></li>
+
+          <!-- RIGHT ICONS -->
+          <li class="nav-item nav-icons d-flex align-items-center gap-3">
+
+            <!-- CART -->
+            <?php if ($isLogged): ?>
+              <!-- Jika user login → cart membuka modal -->
+              <a id="cartToggle" class="nav-link position-relative"
+                 href="#" role="button" aria-label="Keranjang"
+                 data-bs-toggle="modal" data-bs-target="#cartModal">
+
+            <?php else: ?>
+              <!-- Jika BELUM login → cart menuju login.php -->
+              <a id="cartToggle" class="nav-link position-relative"
+                 href="./login.php" role="button" aria-label="Keranjang">
+
+            <?php endif; ?>
+
+                <i data-lucide="shopping-cart" class="icon-svg"></i>
+
+                <span id="cartCountBadge"
+                    style="position:absolute; top:-2px; right:-6px; background:#dc3545; color:white;
+                           border-radius:50%; padding:2px 6px; font-size:10px; min-width:18px; text-align:center;">
+                    <?= htmlspecialchars((string)$cartCount) ?>
+                </span>
+              </a>
+
+            <!-- PROFILE -->
+            <?php if ($isLogged): ?>
+              <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center text-white"
+                   href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                  <i data-lucide="user" class="icon-svg me-1"></i>
+                  <span><?= htmlspecialchars($displayName ?? 'User') ?></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="/profile.php">Profil</a></li>
+                  <li><a class="dropdown-item text-danger" href="./logout.php">Logout</a></li>
+                </ul>
+              </div>
+
+            <?php else: ?>
+              <a class="nav-link d-flex align-items-center text-white"
+                 href="./login.php">
+                <i data-lucide="user" class="icon-svg me-1"></i>
+                <span>Login</span>
+              </a>
+            <?php endif; ?>
+
+          </li>
+        </ul>
+
+      </div>
+    </nav>
+  </div>
 </header>
 
-<div class="section-intro" style="max-width:1100px;margin:18px auto 0;padding:0 16px;display:flex;justify-content:space-between;align-items:center;">
-    <p style="margin:0;color:var(--muted)">Buka setiap hari bagi tamu hotel dan umum.<br />Senin–Minggu: 10.30 – 22.00</p>
-    <strong style="font-size:1rem">Ala Carte Menu</strong>
-</div>
+<!-- Ikon Lucide -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
 
-<div class="page-wrap">
-    <aside class="sidebar" aria-label="Kategori Menu">
-        <h4>Kategori</h4>
-        <ul class="category-list" id="categoryList">
-        <?php
-        if (!empty($categories)) {
-            $first = true;
-            foreach ($categories as $key => $meta) {
-                $active = $first ? 'active' : '';
-                $first = false;
-                $nameEsc = htmlspecialchars($meta['name'], ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-                echo "<li><a href=\"#{$key}\" data-target=\"{$key}\" class=\"{$active}\">{$nameEsc}</a></li>";
-            }
-        } else {
-            echo '<li><em>Tidak ada kategori</em></li>';
-        }
-        ?>
-        </ul>
-    </aside>
-
-    <main class="content">
-    <?php
-    if (!empty($categories)) {
-        foreach ($categories as $key => $meta) {
-            $catNameEsc = htmlspecialchars($meta['name'], ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-            echo <<<HTML
-            <div class="menu-section" id="{$key}-section">
-                <div class="section-head">
-                    <h2>{$catNameEsc}</h2>
-                    <p></p>
-                </div>
-                <div class="menu-grid" id="{$key}"></div>
-            </div>
-HTML;
-        }
-    } else {
-        echo '<p style="padding:20px">Belum ada kategori. Silakan buat kategori di database.</p>';
-    }
-    ?>
-    </main>
-</div>
-
-<?php if (file_exists(__DIR__ . '/partials/footer.php')) include __DIR__ . '/partials/footer.php'; ?>
-
-<script>
-const data = <?php echo $data_json ?: '{}'; ?>;
-
-function formatPrice(value) {
-    const num = typeof value === 'number' ? value : parseFloat(value || 0);
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
+<?php
+// include modal hanya sekali
+if (file_exists(__DIR__ . '/cart-modal.php') && $isLogged) {
+    include __DIR__ . '/cart-modal.php';
 }
-
-function renderMenu(section, items) {
-    const container = document.getElementById(section);
-    if (!container) return;
-    container.innerHTML = "";
-    items.forEach((it) => {
-        const div = document.createElement("div");
-        div.className = "menu-item";
-        const imageSrc = it.image || 'img/americano.jpg';
-        const priceLabel = formatPrice(it.price);
-        const desc = it.description ? it.description : '';
-        div.innerHTML = `
-  <div class="media-wrap">
-    <span class="price-badge">${priceLabel}</span>
-    <img class="media" src="${imageSrc}" alt="${(it.name || '')}" loading="lazy">
-  </div>
-  <div class="card-body">
-    <h3>${it.name}</h3>
-    <p class="desc">${desc}</p>
-    <div class="meta">
-      <button class="btn-order" 
-              data-id="${it.id || ''}"
-              data-name="${it.name || ''}" 
-              data-price="${it.price || 0}" 
-              data-image="${imageSrc}"
-      >Pesan</button>
-    </div>
-  </div>
-`;
-        container.appendChild(div);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    Object.keys(data).forEach(catKey => {
-        const grid = document.getElementById(catKey);
-        if (grid && Array.isArray(data[catKey])) renderMenu(catKey, data[catKey]);
-    });
-
-    // Sidebar scroll & click behavior
-    const sidebar = document.querySelector('.sidebar');
-    const originalTop = sidebar ? getComputedStyle(sidebar).top : '92px';
-    const desiredOffset = 100;
-    
-    function smoothScrollWithSidebar(el, offset) {
-        const sectionTop = el.closest('.menu-section').offsetTop;
-        const finalY = sectionTop - offset;
-        sidebar.style.top = offset + 'px';
-        window.scrollTo({ top: finalY, behavior: 'smooth' });
-        let settled = false;
-        function onScroll() {
-            if (Math.abs(window.pageYOffset - finalY) <= 2) {
-                settled = true;
-                window.removeEventListener('scroll', onScroll);
-                setTimeout(() => { sidebar.style.top = originalTop; }, 80);
-            }
-        }
-        window.addEventListener('scroll', onScroll);
-        setTimeout(() => {
-            if (!settled) {
-                window.removeEventListener('scroll', onScroll);
-                sidebar.style.top = originalTop;
-            }
-        }, 1400);
-    }
-
-    function smoothScrollToContent(offset) {
-        const contentEl = document.querySelector('.content');
-        const finalY = contentEl.offsetTop - offset;
-        sidebar.style.top = offset + 'px';
-        window.scrollTo({ top: finalY, behavior: 'smooth' });
-        let settled = false;
-        function onScroll() {
-            if (Math.abs(window.pageYOffset - finalY) <= 2) {
-                settled = true;
-                window.removeEventListener('scroll', onScroll);
-                setTimeout(() => { sidebar.style.top = originalTop; }, 80);
-            }
-        }
-        window.addEventListener('scroll', onScroll);
-        setTimeout(() => {
-            if (!settled) {
-                window.removeEventListener('scroll', onScroll);
-                sidebar.style.top = originalTop;
-            }
-        }, 1400);
-    }
-
-    document.querySelectorAll('.category-list a[data-target]').forEach(a=>{
-        a.addEventListener('click', (e)=>{
-            e.preventDefault();
-            const target = a.getAttribute('data-target');
-            document.querySelectorAll('.category-list a').forEach(x=>x.classList.remove('active'));
-            a.classList.add('active');
-            if (target === 'all') {
-                smoothScrollToContent(desiredOffset);
-            } else {
-                const el = document.getElementById(target);
-                if (el) smoothScrollWithSidebar(el, desiredOffset);
-            }
-        });
-    });
-});
-// ====== CART HELPERS (simpan di localStorage) ======
-function getCart() {
-  try {
-    return JSON.parse(localStorage.getItem('kopiSenjaCart')) || { items: [] };
-  } catch (e) {
-    return { items: [] };
-  }
-}
-function saveCart(cart) {
-  localStorage.setItem('kopiSenjaCart', JSON.stringify(cart));
-  // trigger event agar navbar (atau komponen lain) bisa update
-  window.dispatchEvent(new Event('cart:updated'));
-}
-function addToCart(item) {
-  const cart = getCart();
-  // cari item berdasarkan id (jika id ada), kalau tidak, cocokkan nama
-  const keyMatch = item.id ? 'id' : 'name';
-  let found = cart.items.find(i => String(i[keyMatch]) === String(item[keyMatch]));
-  if (found) {
-    found.qty = (found.qty || 1) + (item.qty || 1);
-  } else {
-    const toAdd = {
-      id: item.id || '',
-      name: item.name || '',
-      price: Number(item.price || 0),
-      image: item.image || '',
-      qty: item.qty || 1
-    };
-    cart.items.push(toAdd);
-  }
-  saveCart(cart);
-}
-
-// update badge lokal (opsional - navbar juga mendengarkan event)
-function updateCartBadgeLocal() {
-  const cart = getCart();
-  const total = (cart.items || []).reduce((s, it) => s + (it.qty || 0), 0);
-  const badge = document.getElementById('cartCountBadge');
-  if (badge) badge.textContent = total > 0 ? total : '0';
-}
-
-// Hook ke tombol Pesan (delegation)
-document.addEventListener('click', function(e){
-  const btn = e.target.closest && e.target.closest('.btn-order');
-  if (!btn) return;
-  // Ambil data dari atribut
-  const id = btn.getAttribute('data-id') || '';
-  const name = btn.getAttribute('data-name') || btn.dataset.name || 'Item';
-  const price = parseFloat(btn.getAttribute('data-price') || btn.dataset.price || 0) || 0;
-  const image = btn.getAttribute('data-image') || btn.dataset.image || '';
-
-  // buat objek item
-  const item = { id, name, price, image, qty: 1 };
-
-  // tambahkan ke cart
-  addToCart(item);
-  updateCartBadgeLocal();
-
-  // visual feedback sederhana (bisa ganti ke toast)
-  btn.textContent = '✓ Ditambahkan';
-  btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = 'Pesan';
-    btn.disabled = false;
-  }, 800);
-});
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+?>
