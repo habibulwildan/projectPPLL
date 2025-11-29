@@ -135,7 +135,7 @@ if ($mysqli) {
                   <span><?= htmlspecialchars($displayName ?? 'User') ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="./profile.php">Profil</a></li>
+                  <li><a class="dropdown-item" href="/profile.php">Profil</a></li>
                   <li><a class="dropdown-item text-danger" href="./logout.php">Logout</a></li>
                 </ul>
               </div>
