@@ -1,96 +1,168 @@
 <?php
 // partials/navbar.php
-// Pastikan file ini bisa di-include dari halaman lain.
-// Jangan letakkan markup modal ganda — modal ada di partials/cart-modal.php
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config.php';
+
+$mysqli = $conn ?? $mysqli ?? null;
+$cartCount = 0;
+$isLogged = false;
+$displayName = null;
+
+if ($mysqli) {
+    // Cari user_id dari session
+    $user_id = $_SESSION['user_id'] ?? null;
+
+    // Fallback cari user berdasar email
+    if (!$user_id && !empty($_SESSION['user_email'])) {
+        $email = $_SESSION['user_email'];
+        $stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+        if ($stmt) {
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            if (method_exists($stmt, 'get_result')) {
+                $r = $stmt->get_result();
+                if ($r && $r->num_rows) {
+                    $row = $r->fetch_assoc();
+                    $user_id = (int)$row['id'];
+                }
+            } else {
+                $stmt->bind_result($uid);
+                if ($stmt->fetch()) $user_id = (int)$uid;
+            }
+            $stmt->close();
+        }
+    }
+
+    if ($user_id) {
+        $isLogged = true;
+
+        // Ambil nama
+        $displayName = $_SESSION['user_name'] ?? null;
+        if (!$displayName) {
+            $stmt = $mysqli->prepare("SELECT name,email FROM users WHERE id = ? LIMIT 1");
+            if ($stmt) {
+                $stmt->bind_param("i", $user_id);
+                $stmt->execute();
+                if (method_exists($stmt, 'get_result')) {
+                    $r = $stmt->get_result();
+                    if ($r && $r->num_rows) {
+                        $u = $r->fetch_assoc();
+                        $displayName = $u['name'] ?: $u['email'];
+                    }
+                } else {
+                    $stmt->bind_result($name, $email);
+                    if ($stmt->fetch()) $displayName = $name ?: $email;
+                }
+                $stmt->close();
+            }
+        }
+
+        // Hitung jumlah item cart
+        $stmt = $mysqli->prepare("SELECT COUNT(id) FROM carts WHERE user_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            if (method_exists($stmt, 'get_result')) {
+                $r = $stmt->get_result();
+                if ($r && $r->num_rows) {
+                    $c = $r->fetch_assoc();
+                    $cartCount = (int)$c['COUNT(id)'];
+                }
+            } else {
+                $stmt->bind_result($cnt);
+                if ($stmt->fetch()) $cartCount = (int)$cnt;
+            }
+            $stmt->close();
+        }
+    }
+}
 ?>
+
 <header class="header">
   <div class="container-navbar">
     <nav class="navbar navbar-expand-lg navbar-dark">
-      <a class="navbar-brand d-flex align-items-center" href="/projectPPLL/index.php">
-        <img src="/projectPPLL/img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
+
+      <a class="navbar-brand d-flex align-items-center" href="/KopiSenja/index.php">
+        <img src="/KopiSenja/img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
         <h5 class="mb-0">Kopi Senja</h5>
       </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
-              aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarMenu">
+
         <ul class="nav ms-lg-auto flex-column flex-lg-row text-lg-end align-items-center">
-          <li class="nav-item">
-            <a class="nav-link text-white" href="/projectPPLL/index.php">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="/projectPPLL/menu.php">Menu</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="/projectPPLL/about.php">Tentang Kami</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="/projectPPLL/kontak.php">Kontak</a>
-          </li>
 
-          <!-- RIGHT SIDE ICONS (profile + cart) -->
+          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/index.php">Home</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/menu.php">Menu</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/about.php">Tentang Kami</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/kontak.php">Kontak</a></li>
+
+          <!-- RIGHT ICONS -->
           <li class="nav-item nav-icons d-flex align-items-center gap-3">
-            <!-- Cart (tombol buka modal) -->
-            <a id="cartToggle" class="nav-link position-relative" href="#" role="button" aria-label="Keranjang"
-               title="Keranjang" data-bs-toggle="modal" data-bs-target="#cartModal">
-              <i data-lucide="shopping-cart" class="icon-svg"></i>
 
-              <!-- Badge jumlah item (diperbarui via JS) -->
-              <span id="cartCountBadge"
-                    style="position:absolute; top:-2px; right:-6px; background:#dc3545; color:white; border-radius:50%; padding:2px 6px; font-size:10px; min-width:18px; text-align:center; display:inline-block;"
-                    aria-live="polite">0</span>
-            </a>
+            <!-- CART -->
+            <?php if ($isLogged): ?>
+              <!-- Jika user login → cart membuka modal -->
+              <a id="cartToggle" class="nav-link position-relative"
+                 href="#" role="button" aria-label="Keranjang"
+                 data-bs-toggle="modal" data-bs-target="#cartModal">
 
-            <!-- Profile -->
-            <a class="nav-link" href="/projectPPLL/login.php" id="profileLink" aria-label="Profile" title="Profil">
-              <i data-lucide="user" class="icon-svg"></i>
-            </a>
+            <?php else: ?>
+              <!-- Jika BELUM login → cart menuju login.php -->
+              <a id="cartToggle" class="nav-link position-relative"
+                 href="/KopiSenja/login.php" role="button" aria-label="Keranjang">
+
+            <?php endif; ?>
+
+                <i data-lucide="shopping-cart" class="icon-svg"></i>
+
+                <span id="cartCountBadge"
+                    style="position:absolute; top:-2px; right:-6px; background:#dc3545; color:white;
+                           border-radius:50%; padding:2px 6px; font-size:10px; min-width:18px; text-align:center;">
+                    <?= htmlspecialchars((string)$cartCount) ?>
+                </span>
+              </a>
+
+            <!-- PROFILE -->
+            <?php if ($isLogged): ?>
+              <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center text-white"
+                   href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                  <i data-lucide="user" class="icon-svg me-1"></i>
+                  <span><?= htmlspecialchars($displayName ?? 'User') ?></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="/KopiSenja/profile.php">Profil</a></li>
+                  <li><a class="dropdown-item text-danger" href="/KopiSenja/logout.php">Logout</a></li>
+                </ul>
+              </div>
+
+            <?php else: ?>
+              <a class="nav-link d-flex align-items-center text-white"
+                 href="/KopiSenja/login.php">
+                <i data-lucide="user" class="icon-svg me-1"></i>
+                <span>Login</span>
+              </a>
+            <?php endif; ?>
+
           </li>
         </ul>
+
       </div>
     </nav>
   </div>
 </header>
 
-<!-- Lucide icons (ikon) -->
+<!-- Ikon Lucide -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>lucide.createIcons();</script>
 
 <?php
-// Sertakan partial modal keranjang sekali (modal + scriptnya ada dalam file ini).
-// Pastikan file partials/cart-modal.php ada dan hanya berisi 1 modal dengan id="cartModal".
-if (file_exists(__DIR__ . '/cart-modal.php')) {
+// include modal hanya sekali
+if (file_exists(__DIR__ . '/cart-modal.php') && $isLogged) {
     include __DIR__ . '/cart-modal.php';
 }
 ?>
-
-<!-- Small badge sync script (supaya badge update saat halaman load) -->
-<script>
-(function(){
-  // minimal helper (jika partial cart-modal.php juga meng-handle event cart:updated, ini hanya safety)
-  function getCart() {
-    try {
-      return JSON.parse(localStorage.getItem('kopiSenjaCart')) || { items: [] };
-    } catch (e) {
-      return { items: [] };
-    }
-  }
-  function totalQty(cart) {
-    return (cart.items || []).reduce((s, it) => s + (it.qty || 0), 0);
-  }
-  function updateBadge() {
-    const badge = document.getElementById('cartCountBadge');
-    if (!badge) return;
-    const cart = getCart();
-    const total = totalQty(cart);
-    badge.textContent = total > 0 ? total : '0';
-  }
-
-  document.addEventListener('DOMContentLoaded', updateBadge);
-  // dengarkan event global yang dikirim saat cart berubah
-  window.addEventListener('cart:updated', updateBadge);
-})();
-</script>
