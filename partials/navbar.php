@@ -12,7 +12,7 @@ if ($mysqli) {
     // Cari user_id dari session
     $user_id = $_SESSION['user_id'] ?? null;
 
-    // Fallback cari user berdasar email
+    // Fallback kalau hanya ada email
     if (!$user_id && !empty($_SESSION['user_email'])) {
         $email = $_SESSION['user_email'];
         $stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
@@ -33,10 +33,11 @@ if ($mysqli) {
         }
     }
 
+    // Jika berhasil menemukan user_id
     if ($user_id) {
         $isLogged = true;
 
-        // Ambil nama
+        // Ambil nama user
         $displayName = $_SESSION['user_name'] ?? null;
         if (!$displayName) {
             $stmt = $mysqli->prepare("SELECT name,email FROM users WHERE id = ? LIMIT 1");
@@ -50,8 +51,8 @@ if ($mysqli) {
                         $displayName = $u['name'] ?: $u['email'];
                     }
                 } else {
-                    $stmt->bind_result($name, $email);
-                    if ($stmt->fetch()) $displayName = $name ?: $email;
+                    $stmt->bind_result($name, $mail);
+                    if ($stmt->fetch()) $displayName = $name ?: $mail;
                 }
                 $stmt->close();
             }
@@ -100,33 +101,36 @@ if ($mysqli) {
           <li class="nav-item"><a class="nav-link text-white" href="./about.php">Tentang Kami</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="./kontak.php">Kontak</a></li>
 
+          <!-- RIWAYAT PESANAN – muncul hanya jika login -->
+          <?php if ($isLogged): ?>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="./riwayat_pesanan.php">Riwayat Pesanan</a>
+          </li>
+          <?php endif; ?>
+
           <!-- RIGHT ICONS -->
           <li class="nav-item nav-icons d-flex align-items-center gap-3">
 
             <!-- CART -->
             <?php if ($isLogged): ?>
-              <!-- Jika user login → cart membuka modal -->
               <a id="cartToggle" class="nav-link position-relative"
                  href="#" role="button" aria-label="Keranjang"
                  data-bs-toggle="modal" data-bs-target="#cartModal">
-
             <?php else: ?>
-              <!-- Jika BELUM login → cart menuju login.php -->
               <a id="cartToggle" class="nav-link position-relative"
                  href="./login.php" role="button" aria-label="Keranjang">
-
             <?php endif; ?>
 
                 <i data-lucide="shopping-cart" class="icon-svg"></i>
 
                 <span id="cartCountBadge"
-                    style="position:absolute; top:-2px; right:-6px; background:#dc3545; color:white;
-                           border-radius:50%; padding:2px 6px; font-size:10px; min-width:18px; text-align:center;">
+                      style="position:absolute; top:-2px; right:-6px; background:#dc3545; color:white;
+                             border-radius:50%; padding:2px 6px; font-size:10px;">
                     <?= htmlspecialchars((string)$cartCount) ?>
                 </span>
               </a>
 
-            <!-- PROFILE -->
+            <!-- PROFILE DROPDOWN -->
             <?php if ($isLogged): ?>
               <div class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle d-flex align-items-center text-white"
@@ -135,7 +139,7 @@ if ($mysqli) {
                   <span><?= htmlspecialchars($displayName ?? 'User') ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="/profile.php">Profil</a></li>
+                  <li><a class="dropdown-item" href="./profile.php">Profil</a></li>
                   <li><a class="dropdown-item text-danger" href="./logout.php">Logout</a></li>
                 </ul>
               </div>
@@ -161,8 +165,8 @@ if ($mysqli) {
 <script>lucide.createIcons();</script>
 
 <?php
-// include modal hanya sekali
-if (file_exists(__DIR__ . '/cart-modal.php') && $isLogged) {
+// Tambahkan modal cart hanya jika login
+if ($isLogged && file_exists(__DIR__ . '/cart-modal.php')) {
     include __DIR__ . '/cart-modal.php';
 }
 ?>
