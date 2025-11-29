@@ -82,8 +82,8 @@ if ($mysqli) {
   <div class="container-navbar">
     <nav class="navbar navbar-expand-lg navbar-dark">
 
-      <a class="navbar-brand d-flex align-items-center" href="/KopiSenja/index.php">
-        <img src="/KopiSenja/img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
+      <a class="navbar-brand d-flex align-items-center" href="./index.php">
+        <img src="./img/logo_kopisenja.jpg" alt="Logo Kopi Senja" class="header-logo me-2" />
         <h5 class="mb-0">Kopi Senja</h5>
       </a>
 
@@ -95,10 +95,10 @@ if ($mysqli) {
 
         <ul class="nav ms-lg-auto flex-column flex-lg-row text-lg-end align-items-center">
 
-          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/index.php">Home</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/menu.php">Menu</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/about.php">Tentang Kami</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="/KopiSenja/kontak.php">Kontak</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./index.php">Home</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./menu.php">Menu</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./about.php">Tentang Kami</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="./kontak.php">Kontak</a></li>
 
           <!-- RIGHT ICONS -->
           <li class="nav-item nav-icons d-flex align-items-center gap-3">
@@ -113,7 +113,7 @@ if ($mysqli) {
             <?php else: ?>
               <!-- Jika BELUM login → cart menuju login.php -->
               <a id="cartToggle" class="nav-link position-relative"
-                 href="/KopiSenja/login.php" role="button" aria-label="Keranjang">
+                 href="./login.php" role="button" aria-label="Keranjang">
 
             <?php endif; ?>
 
@@ -135,14 +135,14 @@ if ($mysqli) {
                   <span><?= htmlspecialchars($displayName ?? 'User') ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="/KopiSenja/profile.php">Profil</a></li>
-                  <li><a class="dropdown-item text-danger" href="/KopiSenja/logout.php">Logout</a></li>
+                  <li><a class="dropdown-item" href="./profile.php">Profil</a></li>
+                  <li><a class="dropdown-item text-danger" href="./logout.php">Logout</a></li>
                 </ul>
               </div>
 
             <?php else: ?>
               <a class="nav-link d-flex align-items-center text-white"
-                 href="/KopiSenja/login.php">
+                 href="./login.php">
                 <i data-lucide="user" class="icon-svg me-1"></i>
                 <span>Login</span>
               </a>
