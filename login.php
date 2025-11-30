@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         header("Location: index.php");
                         break;
                     case 2: // Kasir
-                        header("Location: kasir_index.php");
+                        header("Location: kasir/index.php");
                         break;
                     case 3: // Admin
                         header("Location: admin_index.php");
