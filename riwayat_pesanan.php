@@ -48,7 +48,6 @@ $sql = "
         id DESC
 ";
 
-
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -60,6 +59,7 @@ $stmt->close();
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Riwayat Pesanan – Kopi Senja</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -69,6 +69,7 @@ body {
     min-height: 100vh;
     font-family: "Poppins", sans-serif;
 }
+
 .history-box {
     background: #fdf8f3;
     padding: 25px;
@@ -76,20 +77,59 @@ body {
     box-shadow: 0 8px 20px rgba(50,30,10,0.2);
     border: 2px solid #b08c6d;
 }
+
 .table thead {
     background: #8b5e34;
     color: white;
 }
+
 .status-badge {
-    padding: 6px 14px;
-    border-radius: 10px;
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 12px;
     font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    min-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
+
 .status-pending { background:#e6c48c; color:#5a4634; }
 .status-processing { background:#8f704b; color:white; }
 .status-ready { background:#5eba7d; color:white; }
 .status-completed { background:#3c7dd9; color:white; }
 .status-cancelled { background:#d9534f; color:white; }
+
+/* Responsif */
+@media (max-width: 767px) {
+    .table thead {
+        display: none;
+    }
+    .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+    }
+    .table tr {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #b08c6d;
+    }
+    .table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+    }
+    .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: calc(50% - 30px);
+        text-align: left;
+        font-weight: 600;
+    }
+}
 </style>
 </head>
 <body>
@@ -117,38 +157,23 @@ body {
             if ($orders->num_rows > 0):
                 while ($o = $orders->fetch_assoc()):
                     $status = strtolower($o['status'] ?? '');
+                    // Badge text
+                    switch($status){
+                        case "pending": $badge = "<span class='status-badge status-pending'>Menunggu Pembayaran</span>"; break;
+                        case "confirmed": $badge = "<span class='status-badge status-processing'>Dikonfirmasi</span>"; break;
+                        case "processing": $badge = "<span class='status-badge status-processing'>Diproses</span>"; break;
+                        case "ready": $badge = "<span class='status-badge status-ready'>Siap Diambil</span>"; break;
+                        case "completed": $badge = "<span class='status-badge status-completed'>Selesai</span>"; break;
+                        case "cancelled": $badge = "<span class='status-badge status-cancelled'>Dibatalkan</span>"; break;
+                        default: $badge = "<span class='status-badge status-cancelled'>Tidak Diketahui</span>";
+                    }
             ?>
                 <tr>
-                    <td><?= $no++ ?></td>
-                    <td><?= htmlspecialchars($o['order_number']) ?></td>
-                    <td>Rp <?= number_format($o['total_amount'],0,',','.') ?></td>
-                    <td>
-                        <?php
-                        switch($status){
-                            case "pending": 
-                                echo "<span class='status-badge status-pending'>Menunggu Pembayaran</span>"; 
-                                break;
-                            case "confirmed": 
-                                echo "<span class='status-badge status-processing'>Dikonfirmasi</span>"; 
-                                break;
-                            case "processing": 
-                                echo "<span class='status-badge status-processing'>Diproses</span>"; 
-                                break;
-                            case "ready": 
-                                echo "<span class='status-badge status-ready'>Siap Diambil</span>"; 
-                                break;
-                            case "completed": 
-                                echo "<span class='status-badge status-completed'>Selesai</span>"; 
-                                break;
-                            case "cancelled": 
-                                echo "<span class='status-badge status-cancelled'>Dibatalkan</span>"; 
-                                break;
-                            default:
-                                echo "<span class='status-badge status-cancelled'>Tidak Diketahui</span>";
-                        }
-                        ?>
-                    </td>
-                    <td><?= date("d M Y H:i", strtotime($o['order_date'])) ?></td>
+                    <td data-label="No"><?= $no++ ?></td>
+                    <td data-label="No Pesanan"><?= htmlspecialchars($o['order_number']) ?></td>
+                    <td data-label="Total Bayar">Rp <?= number_format($o['total_amount'],0,',','.') ?></td>
+                    <td data-label="Status" class="text-center"><?= $badge ?></td>
+                    <td data-label="Tanggal"><?= date("d M Y H:i", strtotime($o['order_date'])) ?></td>
                 </tr>
             <?php 
                 endwhile;
@@ -170,6 +195,8 @@ body {
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
