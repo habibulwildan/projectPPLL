@@ -246,7 +246,7 @@ $display_error_message = implode(". ", $error_messages);
                 <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                 <span>Produk</span>
             </a>
-            <a href="#" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
+            <a href="pesanan.php" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
                 <i data-lucide="receipt" class="w-5 h-5"></i>
                 <span>Pesanan</span>
             </a>
