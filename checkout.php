@@ -306,7 +306,7 @@ h2, h3 {
                 <label class="payment-option">
                     <input type="radio" name="payment_method" value="cash" class="d-none" required>
                     <div class="payment-card text-center">
-                        <img src="img/cash.png" alt="Cash">
+                        <img src="img/cash4.png" alt="Cash">
                         <p class="mt-2 fw-bold" style="color:#5a3a1e;">Cash / Tunai</p>
                     </div>
                 </label>
