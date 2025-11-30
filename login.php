@@ -255,6 +255,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     padding: 20px;
                 }
             }
+            .forgot-link {
+                color: #8B4513; /* warna coklat tema */
+                font-weight: 500;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+            .forgot-link:hover {
+                color: #6F330E; /* warna lebih gelap saat hover */
+                text-decoration: underline;
+            }
+
         </style>
     </head>
 
@@ -290,6 +302,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                     <input type="password" class="form-control input-field1" name="password" placeholder="Password" required>
                                 </div>
+                            </div>
+                           <div class="text-center mt-3 mb-3">
+                                <a href="forgot_password.php" class="forgot-link">Lupa Password?</a>
                             </div>
 
                             <button type="submit" class="btn btn-brown btn-login fw-bold">LOG IN</button>
