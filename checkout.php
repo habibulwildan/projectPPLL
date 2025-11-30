@@ -24,12 +24,10 @@ $user = $res->fetch_assoc();
 $user_id = (int)$user['id'];
 $stmt->close();
 
-
 // ========================================================
 // 2. PROSES CHECKOUT (POST)
 // ========================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $payment_method = $_POST['payment_method'] ?? null;
 
     if (!$payment_method) {
@@ -73,10 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mysqli->begin_transaction();
 
     try {
-        // Nomor order
         $order_number = "ORD" . time() . rand(100,999);
 
-        // Insert orders
         $stmt = $mysqli->prepare("
             INSERT INTO orders 
             (order_number, customer_id, subtotal, total_amount, status, order_type, order_date, created_at)
@@ -87,13 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_id = $stmt->insert_id;
         $stmt->close();
 
-        // Insert detail orders
+        // Detail order
         $stmt = $mysqli->prepare("
             INSERT INTO detail_orders 
             (order_id, menu_id, menu_name, menu_price, quantity, subtotal, created_at)
             VALUES (?, ?, ?, ?, ?, ?, NOW())
         ");
-
         foreach ($cart as $item) {
             $stmt->bind_param(
                 "iisdis",
@@ -108,9 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
-        // Insert payment
+        // Payment
         $payment_id = "PAY" . time() . rand(100,999);
-
         $stmt = $mysqli->prepare("
             INSERT INTO payments
             (order_id, payment_id, payment_method, amount, status, created_at)
@@ -126,10 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-        // COMMIT
         $mysqli->commit();
 
-        // FLASH MESSAGE FIXED
         $_SESSION['flash'] = "Pesanan berhasil dikirim ke kasir. Menunggu konfirmasi pembayaran.";
         $_SESSION['flash_type'] = "success";
 
@@ -145,8 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
-
 
 // ========================================================
 // 3. TAMPILKAN HALAMAN CHECKOUT (GET)
@@ -172,24 +162,20 @@ while ($row = $res->fetch_assoc()) {
 $stmt->close();
 
 $total = $subtotal;
-
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Checkout – Kopi Senja</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+<meta charset="UTF-8">
+<title>Checkout – Kopi Senja</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-/* BACKGROUND LATTE */
 body {
     background: linear-gradient(135deg, #c9b49b, #e9d7c3, #d2b89c);
     min-height: 100vh;
     font-family: "Poppins", sans-serif;
 }
-
-/* CARD */
 .checkout-box {
     background: #fdf8f3;
     padding: 35px;
@@ -197,13 +183,11 @@ body {
     box-shadow: 0 10px 25px rgba(80,50,20,0.25);
     border: 2px solid #b08c6d;
 }
-
-/* PAYMENT CARDS */
 .payment-card {
     border: 2px solid #c9a786;
     border-radius: 15px;
-    width: 170px;
-    height: 170px; 
+    width: 150px;
+    height: 150px;
     transition: 0.3s;
     padding: 15px;
     display: flex;
@@ -214,7 +198,7 @@ body {
     box-shadow: 0 3px 10px rgba(70, 45, 20, 0.2);
 }
 .payment-card img {
-    width: 75px;
+    width: 70px;
     margin-bottom: 10px;
 }
 .payment-option input:checked + .payment-card {
@@ -227,8 +211,6 @@ body {
     transform: scale(1.04);
     cursor: pointer;
 }
-
-/* TABLE */
 .table {
     background: #fffaf2;
     border-radius: 12px;
@@ -239,8 +221,6 @@ body {
     background-color: #8b5e34;
     color: white;
 }
-
-/* BUTTON */
 .btn-coffee {
     background: #8b5e34;
     color: white;
@@ -253,19 +233,15 @@ body {
     background: #6b4626;
     color: #fff;
 }
-
-h2, h3 {
-    color: #4a321c;
+h2,h3 {
+    color:#4a321c;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container mt-5" style="max-width:900px;">
-    
     <div class="checkout-box">
-
         <h2 class="mb-3 text-center fw-bold">Checkout Pesanan</h2>
 
         <table class="table table-bordered mt-4">
@@ -277,32 +253,28 @@ h2, h3 {
                     <th>Total</th>
                 </tr>
             </thead>
-
             <tbody>
             <?php foreach ($cartItems as $it): ?>
                 <tr>
                     <td><?= htmlspecialchars($it['name']) ?></td>
                     <td><?= $it['quantity'] ?></td>
-                    <td>Rp <?= number_format($it['price'], 0, ',', '.') ?></td>
-                    <td>Rp <?= number_format($it['total'], 0, ',', '.') ?></td>
+                    <td>Rp <?= number_format($it['price'],0,',','.') ?></td>
+                    <td>Rp <?= number_format($it['total'],0,',','.') ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
 
         <h3 class="fw-bold text-end mt-4">
-            Total Bayar: 
-            <span style="color:#8b5e34;">Rp <?= number_format($total, 0, ',', '.') ?></span>
+            Total Bayar: <span style="color:#8b5e34;">Rp <?= number_format($total,0,',','.') ?></span>
         </h3>
 
         <hr>
 
         <form method="POST" action="checkout.php">
-
             <label class="form-label fw-bold mb-3">Pilih Metode Pembayaran</label>
 
-            <div class="d-flex gap-4 justify-content-center">
-
+            <div class="d-flex justify-content-center flex-wrap flex-md-nowrap gap-3">
                 <label class="payment-option">
                     <input type="radio" name="payment_method" value="cash" class="d-none" required>
                     <div class="payment-card text-center">
@@ -318,19 +290,13 @@ h2, h3 {
                         <p class="mt-2 fw-bold" style="color:#5a3a1e;">QRIS</p>
                     </div>
                 </label>
-
             </div>
 
             <div class="text-center">
-                <button type="submit" class="btn-coffee mt-4">
-                    Bayar Sekarang
-                </button>
+                <button type="submit" class="btn-coffee mt-4">Bayar Sekarang</button>
             </div>
-
         </form>
-
     </div>
-
 </div>
 
 </body>
