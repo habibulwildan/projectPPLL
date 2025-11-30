@@ -1,24 +1,33 @@
 <?php
-// Mulai sesi (penting untuk mengakses variabel sesi)
+// logout.php - Aman untuk semua branch dan directory
 session_start();
 
-// Hapus semua variabel sesi
-$_SESSION = array();
+// 1. Hapus semua data session di server
+$_SESSION = [];
 
-// Jika menggunakan cookie sesi, hapus juga cookie tersebut.
-// Ini akan menghancurkan sesi, dan bukan hanya data sesi!
+// 2. Hapus session di server
+session_destroy();
+
+// 3. Hapus cookie session di browser
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
+        $params["path"], 
+        $params["domain"], 
+        $params["secure"], 
+        $params["httponly"]
     );
 }
 
-// Hancurkan sesi
-session_destroy();
+// 4. Hapus cookie custom jika ada (opsional, aman)
+if (isset($_COOKIE['auth_token'])) {
+    setcookie('auth_token', '', time() - 42000, '/');
+}
 
-// Arahkan pengguna ke halaman login
+// 5. Regenerate session ID untuk keamanan tambahan
+session_regenerate_id(true);
+
+// 6. Redirect relatif ke login.php (tidak pakai path absolut)
 header("Location: login.php");
-exit;
+exit();
 ?>

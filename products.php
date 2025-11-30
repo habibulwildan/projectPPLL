@@ -1,11 +1,16 @@
 <?php
 session_start();
 
-// Aktifkan Output Buffering untuk mencegah error Header (diperlukan untuk session, header, dan redirect)
-ob_start();
+// Cek 1: Pastikan user sudah login (menggunakan kunci 'user_id' yang benar)
+$is_logged_in = isset($_SESSION['user_id']);
 
-// Periksa apakah pengguna sudah login
-if (!isset($_SESSION['admin_id'])) {
+// Cek 2: Pastikan user memiliki role sebagai Admin (ID role = 3)
+$is_admin = isset($_SESSION['user_role_id']) && $_SESSION['user_role_id'] == 3;
+
+// Jika user TIDAK login ATAU user login TAPI bukan Admin, arahkan kembali.
+if (!$is_logged_in || !$is_admin) {
+    // Opsional: Anda bisa menambahkan pesan error ke session untuk ditampilkan di halaman login
+    $_SESSION['login_message'] = "Akses ditolak. Anda harus login sebagai Admin.";
     header("Location: login.php");
     exit;
 }
