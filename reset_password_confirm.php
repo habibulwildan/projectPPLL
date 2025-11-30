@@ -4,9 +4,6 @@ require_once __DIR__ . '/config.php';
 
 $mysqli = $conn ?? $mysqli ?? null;
 
-$message = "";
-$error = "";
-
 if (!$mysqli) {
     die("Koneksi database gagal.");
 }
@@ -35,21 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     $confirm = $_POST['confirm_password'];
 
+    // Cek password sama dengan konfirmasi
     if ($password !== $confirm) {
         $error = "Password tidak sama.";
     } else {
+        // Update password di DB
         $hash = md5($password); // sesuai penyimpanan DB
         $stmt = $conn->prepare("UPDATE users SET password=? WHERE email=?");
         $stmt->bind_param("ss", $hash, $user_email);
         $stmt->execute();
         $stmt->close();
 
+        // Hapus token
         $stmt = $conn->prepare("DELETE FROM password_reset_tokens WHERE token=?");
         $stmt->bind_param("s", $token);
         $stmt->execute();
         $stmt->close();
 
-        $success = "Password berhasil diubah. Silakan login.";
+        // Jangan set session baru! Hanya tampilkan pesan sukses
+        $success = "Password berhasil diubah. Silakan login kembali.";
     }
 }
 ?>
@@ -134,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <?php if($success) : ?>
         <div class="alert alert-success"><?= $success ?></div>
-        <a href="login.php" class="btn btn-primary w-100 mt-2">Login</a>
+        <a href="login.php" class="btn btn-change w-100 mt-2">Login</a>
     <?php else: ?>
         <form method="POST">
             <div class="mb-3">
@@ -146,8 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button type="submit" class="btn btn-change w-100">Ubah Password</button>
         </form>
     <?php endif; ?>
-
-    <!-- <a href="login.php" class="back-link">← Kembali ke Login</a> -->
 </div>
 
 </body>
