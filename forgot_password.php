@@ -35,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Generate token baru
             $token = bin2hex(random_bytes(16));
-
+            $time_created = date('Y-m-d H:i:s');
             // Insert token baru
-            $stmt2 = $mysqli->prepare("INSERT INTO password_reset_tokens(email, token, created_at) VALUES (?, ?, NOW())");
-            $stmt2->bind_param("ss", $email, $token);
+            $stmt2 = $mysqli->prepare("INSERT INTO password_reset_tokens(email, token, created_at) VALUES (?, ?, ?)");
+            $stmt2->bind_param("ss", $email, $token, $time_created);
             if ($stmt2->execute()) {
                 // Get domain from environment variables (Railway atau local)
                 $domain = getenv('RAILWAY_PUBLIC_DOMAIN') ?: ($_ENV['RAILWAY_PUBLIC_DOMAIN'] ?? null);
