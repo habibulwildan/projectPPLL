@@ -168,10 +168,10 @@ if ($res = mysqli_query($mysqli, $catSql)) {
     error_log("Failed to fetch categories: " . mysqli_error($mysqli));
 }
 
-// Ambil menu items
+/// Ambil menu items
 $data = [];
 $sql = "
-  SELECT 
+SELECT 
     m.id,
     m.name,
     m.description,
@@ -179,23 +179,30 @@ $sql = "
     m.image,
     m.category_id,
     c.name AS category_name
-  FROM menus m
-  JOIN categories c ON c.id = m.category_id
-  WHERE m.is_available = 1
-  ORDER BY c.id, m.name
+FROM menus m
+JOIN categories c ON c.id = m.category_id
+WHERE m.is_available = 1
+ORDER BY c.id, m.name
 ";
+// ...
 if ($res = mysqli_query($mysqli, $sql)) {
     while ($row = mysqli_fetch_assoc($res)) {
         $cid = (int)$row['category_id'];
         $key = "cat_{$cid}";
 
-        // fallback image jika kosong atau file tidak ada
-        $imagePath = $row['image'] ?? '';
+        // Path diasumsikan dari SUBFOLDER (naik satu level dulu: ../)
+        $imageName = $row['image'] ?? '';
+        $imagePath = empty($imageName) ? '' : '../public/images/menus/' . $imageName;
+
         if (empty($imagePath) || !file_exists(__DIR__ . '/' . $imagePath)) {
-            $row['image'] = 'img/americano.jpg'; // pastikan ada file ini
+            $row['image'] = 'img/americano.jpg'; 
+        } else {
+            $row['image'] = $imagePath; 
         }
+        // ...
 
         $row['category_name'] = $row['category_name'] ?? '';
+        // ... (lanjutan kode)
 
         if (!isset($data[$key])) $data[$key] = [];
         $data[$key][] = $row;

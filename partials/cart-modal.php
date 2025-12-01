@@ -94,14 +94,27 @@ if ($user_id && $mysqli) {
     if ($stmt) {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
+        
+        // 1. LOGIKA UNTUK get_result() (PHP Modern)
         if (method_exists($stmt, 'get_result')) {
             $res = $stmt->get_result();
             while ($r = $res->fetch_assoc()) {
                 $r['subtotal'] = (float)$r['cart_price'] * (int)$r['quantity'];
                 $total += $r['subtotal'];
+                
+                // 💡 TAMBAHKAN PATH DI SINI (UNUK get_result)
+                $imageName = $r['menu_image'] ?? '';
+                if (!empty($imageName)) {
+                    // ASUMSI: Dari partials/ naik 1 level ke root (../), lalu ke public/images/menus/
+                    $r['menu_image'] = '../public/images/menus/' . $imageName; 
+                }
+                
                 $cartRows[] = $r;
             }
-        } else {
+        } 
+        
+        // 2. LOGIKA UNTUK bind_result() (PHP Legacy / Fallback)
+        else {
             $stmt->bind_result($cart_id, $menu_id, $qty, $cart_price, $menu_name, $menu_image);
             while ($stmt->fetch()) {
                 $row = [
@@ -112,6 +125,14 @@ if ($user_id && $mysqli) {
                     'menu_name' => $menu_name,
                     'menu_image' => $menu_image,
                 ];
+                
+                // 💡 TAMBAHKAN PATH DI SINI (UNUK bind_result)
+                $imageName = $row['menu_image'] ?? '';
+                if (!empty($imageName)) {
+                    // ASUMSI: Dari partials/ naik 1 level ke root (../), lalu ke public/images/menus/
+                    $row['menu_image'] = '../public/images/menus/' . $imageName; 
+                }
+                
                 $row['subtotal'] = (float)$row['cart_price'] * (int)$row['quantity'];
                 $total += $row['subtotal'];
                 $cartRows[] = $row;
