@@ -88,12 +88,9 @@ function add_user(mysqli $conn, string $username, string $email, string $passwor
     }
 }
 
-
 /**
  * Fungsi untuk mengambil semua data pengguna dari database (dengan JOIN ke roles).
- * @param mysqli $conn Objek koneksi mysqli.
- * @param array $error_messages Array referensi untuk menampung pesan error.
- * @return array Array berisi daftar pengguna atau array kosong jika gagal/tidak ada data.
+ * ... (kode get_all_users() yang sudah ada) ...
  */
 function get_all_users(mysqli $conn, array &$error_messages): array
 {
@@ -105,7 +102,7 @@ function get_all_users(mysqli $conn, array &$error_messages): array
                 U.name AS username,      -- Kolom 'name' dari users
                 U.email, 
                 U.phone, 
-                R.name_role AS role,     -- Kolom 'name_role' dari roles (Sudah dikoreksi)
+                R.name_role AS role,     -- Kolom 'name_role' dari roles
                 U.created_at 
             FROM users U
             JOIN roles R ON U.role_id = R.id 
