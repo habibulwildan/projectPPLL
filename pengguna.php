@@ -15,25 +15,25 @@ if (!$is_logged_in || !$is_admin) {
 // 1. INCLUDE FILE EXTERNAL: Koneksi dan Fungsi DB
 // ==========================================================
 // Asumsikan file ini menyediakan koneksi $conn dan mungkin $db_error
-include "config.php"; 
+include "config.php";
 // PENTING: File yang berisi fungsi add_user, update_user, delete_user, dan get_all_users
-include "db_functions.php"; 
+include "db_functions.php";
 
 // Data pengguna yang sudah login
 // Perbaikan Warning: Pastikan variabel didefinisikan dengan nilai default
-$admin_name = $_SESSION['admin_name'] ?? "Admin"; 
+$admin_name = $_SESSION['admin_name'] ?? "Admin";
 $admin_email = $_SESSION['admin_email'] ?? "admin@example.com";
 
 // Inisialisasi variabel untuk tampilan
-$users_list = []; 
-$error_messages = []; 
-$success_message = ""; 
+$users_list = [];
+$error_messages = [];
+$success_message = "";
 
 // Inisialisasi variabel untuk form Tambah
 $old_post = [
-    'username' => '', 
-    'email' => '', 
-    'phone' => '', 
+    'username' => '',
+    'email' => '',
+    'phone' => '',
     'role' => 'user'
 ];
 // Variabel untuk modal edit yang mungkin perlu dibuka
@@ -50,7 +50,7 @@ if (isset($_SESSION['success_message'])) {
 // 2. LOGIKA PEMROSESAN FORMULIR (TAMBAH, UPDATE, DELETE)
 // ==========================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    
+
     // --- LOGIKA TAMBAH PENGGUNA (CREATE) ---
     if ($_POST['action'] === 'add_user') {
         // Ambil data dari formulir dan simpan ke $old_post
@@ -61,12 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $phone = trim($_POST['phone'] ?? '');
 
         $old_post = [
-            'username' => $username, 
-            'email' => $email, 
-            'phone' => $phone, 
+            'username' => $username,
+            'email' => $email,
+            'phone' => $phone,
             'role' => $role
         ];
-        
+
         if ($conn) {
             // Validasi dasar
             if (empty($username) || empty($email) || empty($password)) {
@@ -77,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $error_messages[] = "Password harus minimal 6 karakter.";
             } else {
                 // Panggil fungsi untuk menambahkan pengguna
-                $result = add_user($conn, $username, $email, $password, $role, $phone, $error_messages);
-                
+                $result = add_user($conn, $username, $email, $password, $error_messages, $role, $phone);
+
                 if ($result) {
                     $_SESSION['success_message'] = "Pengguna **" . htmlspecialchars($username) . "** berhasil ditambahkan.";
                     header("Location: pengguna.php");
@@ -89,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             $error_messages[] = "Koneksi database tidak tersedia untuk memproses form Tambah.";
         }
-    } 
-    
+    }
+
     // --- LOGIKA HAPUS PENGGUNA (DELETE) ---
     elseif ($_POST['action'] === 'delete_user') {
         $user_id = (int) ($_POST['user_id'] ?? 0);
@@ -112,8 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             $error_messages[] = "ID pengguna tidak valid atau koneksi DB bermasalah.";
         }
-    } 
-    
+    }
+
     // --- LOGIKA UPDATE PENGGUNA (UPDATE) ---
     elseif ($_POST['action'] === 'update_user') {
         $user_id = (int) ($_POST['edit_id'] ?? 0);
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } elseif (!empty($password) && strlen($password) < 6) {
             $error_messages[] = "Password (jika diubah) harus minimal 6 karakter.";
         }
-        
+
         if (!empty($error_messages)) {
             // Simpan data POST edit ke sesi/variabel untuk 'sticky form' jika ada error
             $_SESSION['edit_error'] = [
@@ -143,14 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'messages' => $error_messages // Simpan error
             ];
             // Redirect untuk mempertahankan modal edit tetap terbuka
-            header("Location: pengguna.php?edit_id={$user_id}&action=edit_error"); 
+            header("Location: pengguna.php?edit_id={$user_id}&action=edit_error");
             exit;
         }
 
         if ($conn && $user_id > 0) {
             // Panggil fungsi untuk memperbarui pengguna
-            $result = update_user($conn, $user_id, $username, $email, $password, $role, $phone, $error_messages);
-            
+            $result = update_user($conn, $user_id, $username, $email, $password, $error_messages,  $role, $phone,);
+
             if ($result) {
                 // Jika admin mengedit akunnya sendiri, update info sesi
                 if ($user_id == ($_SESSION['user_id'] ?? 0)) {
@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'role' => $role,
                 'messages' => $error_messages
             ];
-            header("Location: pengguna.php?edit_id={$user_id}&action=edit_error"); 
+            header("Location: pengguna.php?edit_id={$user_id}&action=edit_error");
             exit;
         }
     }
@@ -195,9 +195,9 @@ if (isset($_GET['edit_id']) && isset($_GET['action']) && $_GET['action'] === 'ed
 // Ambil data default untuk form Tambah jika tidak ada post/error (untuk form Tambah)
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || (isset($_POST['action']) && $_POST['action'] !== 'add_user')) {
     $old_post = [
-        'username' => '', 
-        'email' => '', 
-        'phone' => '', 
+        'username' => '',
+        'email' => '',
+        'phone' => '',
         'role' => 'user'
     ];
 }
@@ -232,8 +232,7 @@ if (!empty($db_error)) {
                 $error_messages[] = "Data pengguna yang akan diedit (ID #{$edit_id}) tidak ditemukan.";
             }
         }
-
-    } catch(\Throwable $e) {
+    } catch (\Throwable $e) {
         $error_messages[] = "Error Umum/Fatal saat fetching data: " . $e->getMessage();
         error_log("Fatal Pengguna Error: " . $e->getMessage());
     }
@@ -258,8 +257,8 @@ $display_error_message = implode(". ", $error_messages);
             theme: {
                 extend: {
                     colors: {
-                        'primary-dark': '#3b2f2f', 
-                        'secondary-gold': '#8a6d46', 
+                        'primary-dark': '#3b2f2f',
+                        'secondary-gold': '#8a6d46',
                         'text-light': '#f2e4cf',
                         'accent-gold': '#c8a66a',
                     },
@@ -281,13 +280,16 @@ $display_error_message = implode(". ", $error_messages);
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #3b2f2f;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #8a6d46;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #c8a66a;
         }
@@ -299,50 +301,57 @@ $display_error_message = implode(". ", $error_messages);
         }
 
         /* * LOGIKA SIDEBAR */
-        
+
         .sidebar {
-            transform: translateX(-100%); 
+            transform: translateX(-100%);
             transition: transform 0.3s ease-in-out;
-            position: fixed; 
+            position: fixed;
             height: 100%;
-            z-index: 50; 
+            z-index: 50;
         }
+
         .sidebar.active {
             transform: translateX(0);
         }
 
         .main-content {
-            padding-left: 0; 
+            padding-left: 0;
             transition: padding-left 0.3s ease-in-out;
             min-height: 100vh;
         }
-        
+
         /* MEDIA QUERY UNTUK DESKTOP (> 768px) */
         @media (min-width: 768px) {
             .sidebar {
-                transform: translateX(0); 
-                position: relative; 
+                transform: translateX(0);
+                position: relative;
                 z-index: 10;
             }
+
             .sidebar.is-closed {
-                transform: translateX(-100%); 
-                position: fixed; 
+                transform: translateX(-100%);
+                position: fixed;
             }
+
             .main-content {
-                padding-left: 16rem; 
+                padding-left: 16rem;
             }
+
             .main-content.sidebar-closed {
-                padding-left: 0; 
+                padding-left: 0;
             }
         }
 
         /* Modal Custom Style */
         .modal {
             transition: opacity 0.3s ease-in-out;
-            display: none; /* Default hidden, JS will manage opacity */
+            display: none;
+            /* Default hidden, JS will manage opacity */
         }
+
         .modal.open {
-             display: flex; /* Show when open */
+            display: flex;
+            /* Show when open */
         }
     </style>
 </head>
@@ -350,7 +359,7 @@ $display_error_message = implode(". ", $error_messages);
 <body class="flex min-h-screen">
 
     <div id="sidebar" class="sidebar bg-primary-dark w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transition duration-200 ease-in-out z-40 shadow-2xl">
-        
+
         <a href="#" class="text-white flex items-center space-x-2 px-4">
             <i data-lucide="coffee" class="w-8 h-8 text-accent-gold"></i>
             <span class="text-2xl font-extrabold text-text-light">Admin KopiSenja</span>
@@ -385,13 +394,13 @@ $display_error_message = implode(". ", $error_messages);
     </div>
 
     <div id="main-content" class="main-content flex-1 flex flex-col overflow-hidden">
-        
+
         <header class="flex items-center p-4 bg-primary-dark shadow-md sticky top-0 z-20">
-            
+
             <button id="menu-btn" class="text-text-light mr-4 md:mr-8 block">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-            
+
             <h1 class="text-lg sm:text-2xl font-bold text-text-light flex-grow">Manajemen Pengguna</h1>
 
             <div class="flex items-center space-x-3 ml-auto">
@@ -413,7 +422,7 @@ $display_error_message = implode(". ", $error_messages);
                     <p class="text-sm mt-1"><?= htmlspecialchars($display_error_message) ?></p>
                 </div>
             <?php endif; ?>
-            
+
             <?php if (!empty($success_message)): ?>
                 <div role="alert" class="bg-green-700 text-white p-4 rounded-lg mb-6 border border-green-500">
                     <div class="flex items-center">
@@ -423,7 +432,7 @@ $display_error_message = implode(". ", $error_messages);
                     <p class="text-sm mt-1"><?= htmlspecialchars($success_message) ?></p>
                 </div>
             <?php endif; ?>
-            
+
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-text-light">Daftar Semua Pengguna</h2>
                 <button id="open-add-modal-btn" class="bg-accent-gold hover:bg-secondary-gold text-primary-dark font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex items-center space-x-2">
@@ -453,10 +462,9 @@ $display_error_message = implode(". ", $error_messages);
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($users_list as $user): 
+                                <?php foreach ($users_list as $user):
                                     $role = htmlspecialchars($user['role'] ?? 'user');
-                                    $role_class = (strtolower($role) == 'admin') ? 'bg-red-900 text-red-300' : 
-                                                    ((strtolower($role) == 'kasir') ? 'bg-yellow-900 text-yellow-300' : 'bg-blue-900 text-blue-300');
+                                    $role_class = (strtolower($role) == 'admin') ? 'bg-red-900 text-red-300' : ((strtolower($role) == 'kasir') ? 'bg-yellow-900 text-yellow-300' : 'bg-blue-900 text-blue-300');
                                     // Cek apakah user adalah admin yang sedang login
                                     $is_self = ($user['id'] == ($_SESSION['user_id'] ?? 0));
                                 ?>
@@ -471,25 +479,23 @@ $display_error_message = implode(". ", $error_messages);
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                                            <button 
-                                                title="Edit Pengguna" 
+                                            <button
+                                                title="Edit Pengguna"
                                                 class="edit-btn text-secondary-gold hover:text-accent-gold transition duration-150"
                                                 data-id="<?= htmlspecialchars($user['id']) ?>"
                                                 data-username="<?= htmlspecialchars($user['username']) ?>"
                                                 data-email="<?= htmlspecialchars($user['email']) ?>"
                                                 data-phone="<?= htmlspecialchars($user['phone'] ?? '') ?>"
-                                                data-role="<?= htmlspecialchars($user['role'] ?? 'user') ?>"
-                                            >
+                                                data-role="<?= htmlspecialchars($user['role'] ?? 'user') ?>">
                                                 <i data-lucide="square-pen" class="w-5 h-5"></i>
                                             </button>
-                                            
+
                                             <?php if (!$is_self): ?>
-                                                <button 
-                                                    title="Hapus Pengguna" 
+                                                <button
+                                                    title="Hapus Pengguna"
                                                     class="delete-btn text-red-500 hover:text-red-700 transition duration-150"
                                                     data-id="<?= htmlspecialchars($user['id']) ?>"
-                                                    data-username="<?= htmlspecialchars($user['username']) ?>"
-                                                >
+                                                    data-username="<?= htmlspecialchars($user['username']) ?>">
                                                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                                                 </button>
                                             <?php else: ?>
@@ -508,22 +514,22 @@ $display_error_message = implode(". ", $error_messages);
 
         </main>
     </div>
-    
-    <?php 
+
+    <?php
     // Tutup koneksi di akhir script jika memang menggunakan prosedur ini
     if (isset($conn) && $conn) {
-        mysqli_close($conn); 
+        mysqli_close($conn);
     }
     ?>
 
-<?php 
-        $add_modal_open_class = (!empty($error_messages) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_user') ? 'open' : '';
+    <?php
+    $add_modal_open_class = (!empty($error_messages) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_user') ? 'open' : '';
     ?>
     <div id="add-user-modal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 z-50 <?= $add_modal_open_class ?>">
-        
+
         <div class="bg-primary-dark w-full max-w-lg mx-auto rounded-xl shadow-2xl p-6 transform transition-transform duration-300 ease-out 
              <?= $add_modal_open_class ? 'translate-y-0' : 'translate-y-10'; ?>">
-            
+
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                 <h3 class="text-xl font-bold text-text-light">Tambah Pengguna Baru</h3>
                 <button id="close-add-modal-btn" class="text-gray-400 hover:text-white transition duration-150">
@@ -532,41 +538,41 @@ $display_error_message = implode(". ", $error_messages);
             </div>
 
             <form action="pengguna.php" method="POST">
-                
+
                 <input type="hidden" name="action" value="add_user">
 
                 <div class="mb-4">
                     <label for="username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
-                    <input type="text" id="username" name="username" required 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="Masukkan nama pengguna" value="<?= htmlspecialchars($old_post['username']) ?>">
+                    <input type="text" id="username" name="username" required
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="Masukkan nama pengguna" value="<?= htmlspecialchars($old_post['username']) ?>">
                 </div>
 
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                    <input type="email" id="email" name="email" required 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="contoh@domain.com" value="<?= htmlspecialchars($old_post['email']) ?>">
+                    <input type="email" id="email" name="email" required
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="contoh@domain.com" value="<?= htmlspecialchars($old_post['email']) ?>">
                 </div>
-                
+
                 <div class="mb-4">
                     <label for="phone" class="block text-sm font-medium text-gray-300 mb-1">Telepon (Opsional)</label>
-                    <input type="text" id="phone" name="phone" 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($old_post['phone']) ?>">
+                    <input type="text" id="phone" name="phone"
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($old_post['phone']) ?>">
                 </div>
 
                 <div class="mb-4">
                     <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
-                    <input type="password" id="password" name="password" required 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="Minimal 6 karakter">
+                    <input type="password" id="password" name="password" required
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="Minimal 6 karakter">
                 </div>
 
                 <div class="mb-4">
                     <label for="role" class="block text-sm font-medium text-gray-300 mb-1">Role (Hak Akses)</label>
                     <select id="role" name="role"
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150 appearance-none">
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150 appearance-none">
                         <option value="user" <?= ($old_post['role'] == 'user') ? 'selected' : ''; ?>>User Biasa (Customer)</option>
                         <option value="admin" <?= ($old_post['role'] == 'admin') ? 'selected' : ''; ?>>Admin</option>
                         <option value="kasir" <?= ($old_post['role'] == 'kasir') ? 'selected' : ''; ?>>Kasir</option>
@@ -582,15 +588,15 @@ $display_error_message = implode(". ", $error_messages);
             </form>
         </div>
     </div>
-    
-<?php 
-        $edit_modal_open_class = $edit_mode_active ? 'open' : '';
+
+    <?php
+    $edit_modal_open_class = $edit_mode_active ? 'open' : '';
     ?>
     <div id="edit-user-modal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 z-50 <?= $edit_modal_open_class ?>">
-        
+
         <div class="bg-primary-dark w-full max-w-lg mx-auto rounded-xl shadow-2xl p-6 transform transition-transform duration-300 ease-out 
              <?= $edit_modal_open_class ? 'translate-y-0' : 'translate-y-10'; ?>">
-            
+
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                 <h3 class="text-xl font-bold text-text-light">Edit Pengguna #<span id="edit-user-id-display"></span></h3>
                 <button id="close-edit-modal-btn" class="text-gray-400 hover:text-white transition duration-150">
@@ -599,42 +605,42 @@ $display_error_message = implode(". ", $error_messages);
             </div>
 
             <form action="pengguna.php" method="POST">
-                
+
                 <input type="hidden" name="action" value="update_user">
                 <input type="hidden" id="edit-id" name="edit_id" value="<?= htmlspecialchars($user_to_edit['id'] ?? '') ?>">
 
                 <div class="mb-4">
                     <label for="edit-username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
-                    <input type="text" id="edit-username" name="edit_username" required 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="Masukkan nama pengguna" value="<?= htmlspecialchars($user_to_edit['username'] ?? '') ?>">
+                    <input type="text" id="edit-username" name="edit_username" required
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="Masukkan nama pengguna" value="<?= htmlspecialchars($user_to_edit['username'] ?? '') ?>">
                 </div>
 
                 <div class="mb-4">
                     <label for="edit-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                    <input type="email" id="edit-email" name="edit_email" required 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="contoh@domain.com" value="<?= htmlspecialchars($user_to_edit['email'] ?? '') ?>">
+                    <input type="email" id="edit-email" name="edit_email" required
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="contoh@domain.com" value="<?= htmlspecialchars($user_to_edit['email'] ?? '') ?>">
                 </div>
-                
+
                 <div class="mb-4">
                     <label for="edit-phone" class="block text-sm font-medium text-gray-300 mb-1">Telepon (Opsional)</label>
-                    <input type="text" id="edit-phone" name="edit_phone" 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($user_to_edit['phone'] ?? '') ?>">
+                    <input type="text" id="edit-phone" name="edit_phone"
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($user_to_edit['phone'] ?? '') ?>">
                 </div>
 
                 <div class="mb-4">
                     <label for="edit-password" class="block text-sm font-medium text-gray-300 mb-1">Ganti Password (Kosongkan jika tidak ingin ganti)</label>
-                    <input type="password" id="edit-password" name="edit_password" 
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
-                            placeholder="Minimal 6 karakter">
+                    <input type="password" id="edit-password" name="edit_password"
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150"
+                        placeholder="Minimal 6 karakter">
                 </div>
 
                 <div class="mb-4">
                     <label for="edit-role" class="block text-sm font-medium text-gray-300 mb-1">Role (Hak Akses)</label>
                     <select id="edit-role" name="edit_role"
-                            class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150 appearance-none">
+                        class="w-full px-4 py-2 bg-[#2c2c2c] text-text-light border border-gray-600 rounded-lg focus:ring-accent-gold focus:border-accent-gold transition duration-150 appearance-none">
                         <option value="user" <?= (isset($user_to_edit['role']) && $user_to_edit['role'] == 'user') ? 'selected' : ''; ?>>User Biasa (Customer)</option>
                         <option value="admin" <?= (isset($user_to_edit['role']) && $user_to_edit['role'] == 'admin') ? 'selected' : ''; ?>>Admin</option>
                         <option value="kasir" <?= (isset($user_to_edit['role']) && $user_to_edit['role'] == 'kasir') ? 'selected' : ''; ?>>Kasir</option>
@@ -653,7 +659,7 @@ $display_error_message = implode(". ", $error_messages);
 
 
     <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-30 hidden md:hidden"></div>
-    
+
     <form id="delete-form" action="pengguna.php" method="POST" style="display:none;">
         <input type="hidden" name="action" value="delete_user">
         <input type="hidden" name="user_id" id="delete-user-id">
@@ -671,7 +677,7 @@ $display_error_message = implode(". ", $error_messages);
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
-        
+
         function toggleSidebar() {
             const isDesktop = window.innerWidth >= 768;
 
@@ -681,15 +687,15 @@ $display_error_message = implode(". ", $error_messages);
             } else {
                 const isClosed = sidebar.classList.toggle('is-closed');
                 mainContent.classList.toggle('sidebar-closed', isClosed);
-                
+
                 if (isClosed) {
-                     sidebar.classList.remove('active');
+                    sidebar.classList.remove('active');
                 } else {
-                     sidebar.classList.add('active');
+                    sidebar.classList.add('active');
                 }
             }
         }
-        
+
         menuBtn.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', () => {
             if (window.innerWidth < 768) {
@@ -697,26 +703,26 @@ $display_error_message = implode(". ", $error_messages);
                 sidebarOverlay.classList.add('hidden');
             }
         });
-        
+
         function initializeLayout() {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 sidebar.classList.add('active');
                 sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); 
+                mainContent.classList.remove('sidebar-closed');
             } else {
                 sidebar.classList.remove('active');
                 sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); 
+                mainContent.classList.remove('sidebar-closed');
             }
         }
 
         document.addEventListener('DOMContentLoaded', initializeLayout);
-        
+
         window.addEventListener('resize', () => {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 sidebar.classList.add('active');
                 sidebar.classList.remove('is-closed');
@@ -738,13 +744,13 @@ $display_error_message = implode(". ", $error_messages);
         const addModal = document.getElementById('add-user-modal');
         const openAddModalBtn = document.getElementById('open-add-modal-btn');
         const closeAddModalBtn = document.getElementById('close-add-modal-btn');
-        const addModalContent = addModal.querySelector('div'); 
+        const addModalContent = addModal.querySelector('div');
 
         const editModal = document.getElementById('edit-user-modal');
         const editBtns = document.querySelectorAll('.edit-btn');
         const closeEditModalBtn = document.getElementById('close-edit-modal-btn');
-        const editModalContent = editModal.querySelector('div'); 
-        
+        const editModalContent = editModal.querySelector('div');
+
         // Fungsi pembuka/penutup umum
         function openModal(modal, content) {
             modal.classList.add('open');
@@ -753,7 +759,7 @@ $display_error_message = implode(". ", $error_messages);
                 content.classList.remove('translate-y-10');
             }, 10);
         }
-        
+
         function closeModal(modal, content) {
             if (modal.classList.contains('open')) {
                 content.classList.add('translate-y-10');
@@ -762,7 +768,7 @@ $display_error_message = implode(". ", $error_messages);
                     modal.classList.remove('open');
                     // Reset URL jika ini adalah modal edit dan dibuka karena error POST
                     if (modal.id === 'edit-user-modal' && window.location.search.includes('edit_id')) {
-                         window.history.pushState({}, document.title, "pengguna.php");
+                        window.history.pushState({}, document.title, "pengguna.php");
                     }
                 }, 300);
             }
@@ -779,8 +785,8 @@ $display_error_message = implode(". ", $error_messages);
 
         // Jika ada error pada modal tambah saat load, pastikan transisi sudah benar
         if (addModal.classList.contains('open')) {
-             addModal.classList.remove('opacity-0', 'pointer-events-none');
-             addModalContent.classList.remove('translate-y-10');
+            addModal.classList.remove('opacity-0', 'pointer-events-none');
+            addModalContent.classList.remove('translate-y-10');
         }
 
         // --- Event Listeners Modal Edit ---
@@ -799,9 +805,9 @@ $display_error_message = implode(". ", $error_messages);
                 document.getElementById('edit-email').value = email;
                 document.getElementById('edit-phone').value = phone;
                 // Atur role yang terpilih
-                document.getElementById('edit-role').value = role; 
+                document.getElementById('edit-role').value = role;
                 // Kosongkan password
-                document.getElementById('edit-password').value = ''; 
+                document.getElementById('edit-password').value = '';
 
                 // Ganti URL tanpa reload
                 history.pushState(null, null, `pengguna.php?edit_id=${id}&action=edit`);
@@ -809,7 +815,7 @@ $display_error_message = implode(". ", $error_messages);
                 openModal(editModal, editModalContent);
             });
         });
-        
+
         closeEditModalBtn.addEventListener('click', () => closeModal(editModal, editModalContent));
         editModal.addEventListener('click', (e) => {
             if (e.target === editModal) {
@@ -819,10 +825,10 @@ $display_error_message = implode(". ", $error_messages);
 
         // Jika ada error pada modal edit saat load, pastikan modal edit terbuka
         if (editModal.classList.contains('open')) {
-             editModal.classList.remove('opacity-0', 'pointer-events-none');
-             editModalContent.classList.remove('translate-y-10');
+            editModal.classList.remove('opacity-0', 'pointer-events-none');
+            editModalContent.classList.remove('translate-y-10');
         }
-        
+
         // ==========================================================
         // DELETE LOGIC (KONFIRMASI)
         // ==========================================================
@@ -844,7 +850,6 @@ $display_error_message = implode(". ", $error_messages);
                 }
             });
         });
-
     </script>
 
 </body>

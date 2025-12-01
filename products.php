@@ -18,20 +18,20 @@ if (!$is_logged_in || !$is_admin) {
 // ==========================================================
 // 1. INCLUDE KONFIGURASI DATABASE (MySQLi)
 // ==========================================================
-include "config.php"; 
+include "config.php";
 
 // Data pengguna yang sudah login
-$admin_name = $_SESSION['admin_id'] ?? "Admin"; 
+$admin_name = $_SESSION['admin_id'] ?? "Admin";
 $admin_email = $_SESSION['admin_email'] ?? "admin@example.com";
 
 // ==========================================================
 // 2. INISIALISASI FEEDBACK DAN PENGATURAN GLOBAL
 // ==========================================================
 $feedback_message = '';
-$feedback_type = ''; 
+$feedback_type = '';
 
 // KONFIGURASI UNGGAH GAMBAR
-$upload_dir = __DIR__ . '/../public/images/menus/'; 
+$upload_dir = __DIR__ . '/../public/images/menus/';
 if (!is_dir($upload_dir)) {
     mkdir($upload_dir, 0777, true);
 }
@@ -43,7 +43,7 @@ if (!is_dir($upload_dir)) {
 if (isset($_GET['feedback_type']) && isset($_GET['feedback_message'])) {
     $feedback_type = $_GET['feedback_type'];
     $feedback_message = urldecode($_GET['feedback_message']);
-    
+
     // (Opsional) Membersihkan URL setelah ditampilkan, agar refresh halaman tidak memunculkan pesan lagi.
     // window.history.replaceState(null, null, 'products.php'); // Akan ditangani di JS
 }
@@ -54,7 +54,8 @@ if (isset($_GET['feedback_type']) && isset($_GET['feedback_message'])) {
 // ==========================================================
 
 // FUNGSI UNTUK MENGAMBIL DATA KATEGORI (READ)
-function get_all_categories(mysqli $conn): array {
+function get_all_categories(mysqli $conn): array
+{
     $categories = [];
     $sql = "SELECT id, name, description, is_active FROM categories ORDER BY id ASC";
     $result = $conn->query($sql);
@@ -69,13 +70,14 @@ function get_all_categories(mysqli $conn): array {
 }
 
 // FUNGSI UNTUK MENGAMBIL DATA MENU (PRODUK) - READ
-function get_all_menus(mysqli $conn): array {
+function get_all_menus(mysqli $conn): array
+{
     $menus = [];
     $sql = "SELECT M.id, M.name, M.description, M.price, M.stock, C.name AS category_name, M.category_id, M.image 
              FROM menus M
              JOIN categories C ON M.category_id = C.id
              ORDER BY M.id DESC";
-             
+
     $result = $conn->query($sql);
 
     if ($result && $result->num_rows > 0) {
@@ -88,10 +90,11 @@ function get_all_menus(mysqli $conn): array {
 }
 
 // FUNGSI UNTUK MENGURUS UNGGAHAN GAMBAR
-function handle_image_upload($file_array, $upload_dir, $old_image_name = null) {
+function handle_image_upload($file_array, $upload_dir, $old_image_name = null)
+{
     global $feedback_message, $feedback_type;
     // ... (Isi fungsi handle_image_upload yang sudah benar, seperti di balasan sebelumnya) ...
-    $new_file_name = $old_image_name; 
+    $new_file_name = $old_image_name;
 
     if ($file_array['error'] === UPLOAD_ERR_OK) {
         $file_tmp = $file_array['tmp_name'];
@@ -101,27 +104,27 @@ function handle_image_upload($file_array, $upload_dir, $old_image_name = null) {
         if (!in_array($file_ext, $allowed_ext)) {
             $feedback_message = "Format file tidak diizinkan. Hanya JPG, JPEG, PNG, atau WEBP.";
             $feedback_type = 'error';
-            return false; 
+            return false;
         }
 
         if ($old_image_name && file_exists($upload_dir . $old_image_name)) {
             // Hapus file lama hanya jika file baru berhasil diunggah
             // Hapus di sini untuk memastikan nama file lama sudah diganti sebelum operasi DB
-            unlink($upload_dir . $old_image_name); 
+            unlink($upload_dir . $old_image_name);
         }
 
         $new_file_name = uniqid('menu_', true) . '.' . $file_ext;
         $file_destination = $upload_dir . $new_file_name;
 
         if (move_uploaded_file($file_tmp, $file_destination)) {
-            return $new_file_name; 
+            return $new_file_name;
         } else {
             $feedback_message = "Gagal memindahkan file yang diunggah.";
             $feedback_type = 'error';
             return false;
         }
     }
-    
+
     return $new_file_name;
 }
 
@@ -129,14 +132,14 @@ function handle_image_upload($file_array, $upload_dir, $old_image_name = null) {
 // 5. LOGIKA CRUD (KATEGORI & MENU)
 // ==========================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
+
     // --- LOGIKA CRUD KATEGORI ---
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
         $name = $_POST['name'] ?? '';
         $description = $_POST['description'] ?? '';
         $id = $_POST['category_id'] ?? null;
-        
+
         $stmt = null;
         $success = false;
         $message = "";
@@ -152,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = $success ? "Kategori berhasil ditambahkan!" : "Gagal menambahkan kategori: " . $stmt->error;
             }
         }
-        
+
         // ----------------- UPDATE / EDIT -----------------
         if ($action === 'edit' && $id !== null && !empty($name)) {
             $sql = "UPDATE categories SET name = ?, description = ?, updated_at = NOW() WHERE id = ?";
@@ -163,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = $success ? "Kategori ID {$id} berhasil diperbarui!" : "Gagal memperbarui kategori: " . $stmt->error;
             }
         }
-        
+
         // ----------------- DELETE / HAPUS -----------------
         if ($action === 'delete' && $id !== null) {
             $sql = "DELETE FROM categories WHERE id = ?";
@@ -179,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt) {
             $stmt->close();
         }
-        
+
         // REDIRECT PRG UNTUK KATEGORI
         header("Location: products.php?tab=categories&feedback_type=" . ($success ? 'success' : 'error') . "&feedback_message=" . urlencode($message));
         exit();
@@ -188,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // --- LOGIKA CRUD MENU (PRODUK) ---
     if (isset($_POST['menu_action'])) {
-        
+
         $action = $_POST['menu_action'] ?? '';
         $menu_id = $_POST['menu_id'] ?? null;
         $name = $_POST['menu_name'] ?? '';
@@ -196,19 +199,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price = $_POST['menu_price'] ?? 0;
         $stock = $_POST['menu_stock'] ?? 0;
         $category_id = $_POST['menu_category_id'] ?? 0;
-        $old_image = $_POST['old_image'] ?? null; 
+        $old_image = $_POST['old_image'] ?? null;
 
         $stmt = null;
         $success = false;
-        $message = ""; 
-        $uploaded_image_name = $old_image; 
-        
+        $message = "";
+        $uploaded_image_name = $old_image;
+
         // PENANGANAN UNGGAH GAMBAR
         if (isset($_FILES['menu_image']) && $_FILES['menu_image']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploaded_image_name = handle_image_upload($_FILES['menu_image'], $upload_dir, $old_image);
-            
+
             if ($uploaded_image_name === false && $_FILES['menu_image']['error'] === UPLOAD_ERR_OK) {
-                goto end_crud_menu; 
+                goto end_crud_menu;
             }
         }
 
@@ -222,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = $success ? "Produk **{$name}** berhasil ditambahkan!" : "Gagal menambahkan produk: " . $stmt->error;
             }
         }
-        
+
         // ----------------- UPDATE / EDIT MENU -----------------
         if ($action === 'edit' && $menu_id !== null && !empty($name)) {
             $sql = "UPDATE menus SET name = ?, description = ?, price = ?, stock = ?, category_id = ?, image = ?, updated_at = NOW() WHERE id = ?";
@@ -233,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = $success ? "Produk ID {$menu_id} berhasil diperbarui!" : "Gagal memperbarui produk: " . $stmt->error;
             }
         }
-        
+
         // ----------------- DELETE / HAPUS MENU -----------------
         if ($action === 'delete' && $menu_id !== null) {
             // Ambil nama gambar sebelum dihapus
@@ -249,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt) {
                 $stmt->bind_param("i", $menu_id);
                 $success = $stmt->execute();
-                
+
                 // Hapus file gambar dari server
                 if ($success && $old_img_name_to_delete && file_exists($upload_dir . $old_img_name_to_delete)) {
                     unlink($upload_dir . $old_img_name_to_delete);
@@ -260,11 +263,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // ➡️ LABEL UNTUK GOTO (HARUS DI SINI) ⬅️
         end_crud_menu:
-        
+
         if ($stmt) {
             $stmt->close();
         }
-        
+
         // REDIRECT PRG UNTUK MENU
         header("Location: products.php?tab=products&feedback_type=" . ($success ? 'success' : 'error') . "&feedback_message=" . urlencode($message));
         exit();
@@ -279,7 +282,9 @@ $categories = get_all_categories($conn);
 $menus = get_all_menus($conn);
 
 // Hentikan Output Buffering dan kirim output ke browser
-ob_end_flush();
+if (ob_get_level() > 0) {
+    ob_end_flush(); // Hanya jalankan jika ada buffer aktif
+}
 
 ?>
 
@@ -322,13 +327,16 @@ ob_end_flush();
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #3b2f2f;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #8a6d46;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #c8a66a;
         }
@@ -341,16 +349,18 @@ ob_end_flush();
 
         /* * LOGIKA SIDEBAR
          */
-        
+
         .sidebar {
             /* Default Mobile: Sidebar tersembunyi di luar layar */
-            transform: translateX(-100%); 
+            transform: translateX(-100%);
             transition: transform 0.3s ease-in-out;
-            position: fixed; /* Selalu fixed di mobile */
+            position: fixed;
+            /* Selalu fixed di mobile */
             height: 100%;
-            z-index: 50; 
+            z-index: 50;
         }
-/* ... (Bagian Desktop @media) ... */
+
+        /* ... (Bagian Desktop @media) ... */
         .sidebar.active {
             /* Ketika 'active', muncul di layar (baik mobile/desktop) */
             transform: translateX(0);
@@ -358,33 +368,37 @@ ob_end_flush();
 
         .main-content {
             /* Default padding untuk desktop (akan diubah oleh JS di mobile) */
-            padding-left: 0; 
+            padding-left: 0;
             transition: padding-left 0.3s ease-in-out;
             min-height: 100vh;
         }
-        
+
         /* MEDIA QUERY UNTUK DESKTOP (> 768px) */
         @media (min-width: 768px) {
             .sidebar {
                 /* Default Desktop: Terbuka dan memengaruhi layout (relatif) */
-                transform: translateX(0); /* Default terbuka */
-                position: relative; 
+                transform: translateX(0);
+                /* Default terbuka */
+                position: relative;
                 z-index: 10;
             }
+
             /* Sidebar Tertutup di Desktop */
             .sidebar.is-closed {
                 /* Atur menjadi fixed dan sembunyikan sepenuhnya (untuk toggle) */
-                transform: translateX(-100%); 
-                position: fixed; 
+                transform: translateX(-100%);
+                position: fixed;
             }
+
             .main-content {
                 /* Default Desktop: Padding sebesar lebar sidebar (w-64 = 16rem = 256px) */
-                padding-left: 16rem; 
+                padding-left: 16rem;
             }
+
             /* Main Content Sidebar Tertutup */
             .main-content.sidebar-closed {
                 /* Ketika sidebar ditutup, hapus padding-left */
-                padding-left: 0; 
+                padding-left: 0;
             }
         }
     </style>
@@ -393,8 +407,8 @@ ob_end_flush();
 <body class="flex min-h-screen">
 
     <!-- Sidebar (Primary Dark) -->
-   <div id="sidebar" class="sidebar bg-primary-dark w-64 space-y-6 py-7 px-2 fixed h-screen left-0 transition duration-200 ease-in-out z-40 shadow-2xl overflow-y-auto">
-        
+    <div id="sidebar" class="sidebar bg-primary-dark w-64 space-y-6 py-7 px-2 fixed h-screen left-0 transition duration-200 ease-in-out z-40 shadow-2xl overflow-y-auto">
+
         <!-- Logo/Judul -->
         <a href="#" class="text-white flex items-center space-x-2 px-4">
             <i data-lucide="coffee" class="w-8 h-8 text-accent-gold"></i>
@@ -432,17 +446,17 @@ ob_end_flush();
 
     <!-- Main Content -->
     <div id="main-content" class="main-content flex-1 flex flex-col overflow-hidden">
-        
+
         <!-- Header Top Bar -->
         <header class="flex items-center p-4 bg-primary-dark shadow-md sticky top-0 z-20">
-            
+
             <!-- Mobile Menu Button (Selalu terlihat di mobile & desktop) -->
             <button id="menu-btn" class="text-text-light mr-4 md:mr-8 block">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-            
+
             <!-- Judul (Ambil sisa ruang, kecuali untuk info user) -->
-           
+
 
             <!-- User Info and Avatar -->
             <div class="flex items-center space-x-3 ml-auto">
@@ -459,7 +473,7 @@ ob_end_flush();
                 <i data-lucide="shopping-bag" class="w-8 h-8 inline mr-2"></i> Manajemen Produk & Kategori
             </h1>
 
-            <?php 
+            <?php
             // Display Feedback Message
             if ($feedback_message) {
                 $bg_color = ($feedback_type === 'success') ? 'bg-green-600' : 'bg-red-600';
@@ -480,14 +494,14 @@ ob_end_flush();
                     </li>
                 </ul>
             </div>
-            
+
             <div id="products-content" class="tab-content">
                 <div class="flex justify-end mb-4">
                     <button onclick="openMenuModal('add')" class="bg-secondary-gold hover:bg-accent-gold text-primary-dark font-bold py-2 px-4 rounded-lg flex items-center shadow-lg transition duration-200">
                         <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Tambah Produk Baru
                     </button>
                 </div>
-                
+
                 <div class="bg-primary-dark p-6 rounded-lg shadow-xl overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-700">
                         <thead>
@@ -508,41 +522,42 @@ ob_end_flush();
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($menus as $menu): ?>
-                                <tr data-id="<?= $menu['id'] ?>" 
-                                    data-name="<?= htmlspecialchars($menu['name']) ?>"
-                                    data-description="<?= htmlspecialchars($menu['description']) ?>"
-                                    data-price="<?= $menu['price'] ?>"
-                                    data-stock="<?= $menu['stock'] ?>"
-                                    data-category-id="<?= $menu['category_id'] ?>">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><?= $menu['id'] ?></td>
-                                    <td class="px-6 py-4 text-sm"><?= htmlspecialchars($menu['name']) ?></td>
-                                    <td class="px-6 py-4 text-sm"><?= htmlspecialchars($menu['category_name']) ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">Rp. <?= number_format($menu['price'], 0, ',', '.') ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><?= $menu['stock'] ?></td>
-                                    <td>
-                                        <?php if (!empty($menu['image'])): ?>
-                                            <img src="../public/images/menus/<?php echo htmlspecialchars($menu['image']); ?>" 
-                                                alt="<?php echo htmlspecialchars($menu['name']); ?>" 
-                                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
-                                        <?php else: ?>
-                                            <i class="fas fa-image" title="Tidak ada gambar"></i>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="openMenuModal('edit', this)" class="text-secondary-gold hover:text-accent-gold mr-3">
-                                            <i data-lucide="square-pen" class="w-5 h-5"></i>
-                                        </button>
-                                        <button onclick="confirmMenuDelete(<?= $menu['id'] ?>)" class="text-red-500 hover:text-red-700">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                    <tr data-id="<?= $menu['id'] ?>"
+                                        data-name="<?= htmlspecialchars($menu['name']) ?>"
+                                        data-description="<?= htmlspecialchars($menu['description']) ?>"
+                                        data-price="<?= $menu['price'] ?>"
+                                        data-stock="<?= $menu['stock'] ?>"
+                                        data-category-id="<?= $menu['category_id'] ?>">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><?= $menu['id'] ?></td>
+                                        <td class="px-6 py-4 text-sm"><?= htmlspecialchars($menu['name']) ?></td>
+                                        <td class="px-6 py-4 text-sm"><?= htmlspecialchars($menu['category_name']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">Rp. <?= number_format($menu['price'], 0, ',', '.') ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm"><?= $menu['stock'] ?></td>
+                                        <td>
+                                            <?php if (!empty($menu['image'])): ?>
+                                                <img src="../public/images/menus/<?php echo htmlspecialchars($menu['image']); ?>"
+                                                    alt="<?php echo htmlspecialchars($menu['name']); ?>"
+                                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                            <?php else: ?>
+                                                <i class="fas fa-image" title="Tidak ada gambar"></i>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="openMenuModal('edit', this)" class="text-secondary-gold hover:text-accent-gold mr-3">
+                                                <i data-lucide="square-pen" class="w-5 h-5"></i>
+                                            </button>
+                                            <button onclick="confirmMenuDelete(<?= $menu['id'] ?>)" class="text-red-500 hover:text-red-700">
+                                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div> <div id="categories-content" class="tab-content hidden">
+            </div>
+            <div id="categories-content" class="tab-content hidden">
                 <div class="flex justify-end mb-4">
                     <button onclick="openCategoryModal('add')" class="bg-secondary-gold hover:bg-accent-gold text-primary-dark font-bold py-2 px-4 rounded-lg flex items-center shadow-lg transition duration-200">
                         <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Tambah Kategori
@@ -567,32 +582,32 @@ ob_end_flush();
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($categories as $category): ?>
-                                <tr data-id="<?= $category['id'] ?>" 
-                                    data-name="<?= htmlspecialchars($category['name']) ?>"
-                                    data-description="<?= htmlspecialchars($category['description']) ?>">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><?= $category['id'] ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><?= htmlspecialchars($category['name']) ?></td>
-                                    <td class="px-6 py-4 text-sm max-w-xs truncate"><?= htmlspecialchars($category['description']) ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $category['is_active'] ? 'bg-green-500 text-green-900' : 'bg-red-500 text-red-900' ?>">
-                                            <?= $category['is_active'] ? 'Aktif' : 'Non-aktif' ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="openCategoryModal('edit', this)" class="text-secondary-gold hover:text-accent-gold mr-3">
-                                            <i data-lucide="square-pen" class="w-5 h-5"></i>
-                                        </button>
-                                        <button onclick="confirmCategoryDelete(<?= $category['id'] ?>)" class="text-red-500 hover:text-red-700">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                    <tr data-id="<?= $category['id'] ?>"
+                                        data-name="<?= htmlspecialchars($category['name']) ?>"
+                                        data-description="<?= htmlspecialchars($category['description']) ?>">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><?= $category['id'] ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm"><?= htmlspecialchars($category['name']) ?></td>
+                                        <td class="px-6 py-4 text-sm max-w-xs truncate"><?= htmlspecialchars($category['description']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $category['is_active'] ? 'bg-green-500 text-green-900' : 'bg-red-500 text-red-900' ?>">
+                                                <?= $category['is_active'] ? 'Aktif' : 'Non-aktif' ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="openCategoryModal('edit', this)" class="text-secondary-gold hover:text-accent-gold mr-3">
+                                                <i data-lucide="square-pen" class="w-5 h-5"></i>
+                                            </button>
+                                            <button onclick="confirmCategoryDelete(<?= $category['id'] ?>)" class="text-red-500 hover:text-red-700">
+                                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div> 
+            </div>
         </main>
         <hr>
 
@@ -604,7 +619,7 @@ ob_end_flush();
                         <i data-lucide="x" class="w-6 h-6"></i>
                     </button>
                 </div>
-                
+
                 <form method="POST" id="category-crud-form">
                     <input type="hidden" name="action" id="category-modal-action">
                     <input type="hidden" name="category_id" id="category-modal-id">
@@ -635,20 +650,21 @@ ob_end_flush();
                         <i data-lucide="x" class="w-6 h-6"></i>
                     </button>
                 </div>
-                
+
                 <form method="POST" id="menu-crud-form" action="products.php" enctype="multipart/form-data"> <input type="hidden" name="menu_action" id="menu-modal-action">
                     <input type="hidden" name="menu_id" id="menu-modal-id">
-                    <input type="hidden" name="old_image" id="menu-old-image"> <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" name="old_image" id="menu-old-image">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="mb-4">
                             <label for="menu-name" class="block text-sm font-medium text-text-light mb-1">Nama Produk</label>
                             <input type="text" name="menu_name" id="menu-name" required class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold">
                         </div>
-                        
+
                         <div class="mb-4">
                             <label for="menu-category-id" class="block text-sm font-medium text-text-light mb-1">Kategori</label>
                             <select name="menu_category_id" id="menu-category-id" required class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold">
                                 <option value="">-- Pilih Kategori --</option>
-                                <?php 
+                                <?php
                                 // Loop untuk mengisi dropdown kategori
                                 foreach ($categories as $cat) {
                                     echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
@@ -656,18 +672,18 @@ ob_end_flush();
                                 ?>
                             </select>
                         </div>
-                        
+
                         <div class="mb-4">
                             <label for="menu-price" class="block text-sm font-medium text-text-light mb-1">Harga (Rp)</label>
                             <input type="number" name="menu_price" id="menu-price" required step="1000" min="0" class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold">
                         </div>
-                        
+
                         <div class="mb-4">
                             <label for="menu-stock" class="block text-sm font-medium text-text-light mb-1">Stok</label>
                             <input type="number" name="menu_stock" id="menu-stock" required min="0" class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold">
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label for="menu-image" class="block text-sm font-medium text-text-light mb-1">Upload Gambar</label>
                         <input type="file" name="menu_image" id="menu-image" class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold" accept="image/*">
@@ -676,7 +692,7 @@ ob_end_flush();
                             <img id="image-preview" src="" alt="Current Image" class="w-16 h-16 object-cover rounded-md mt-1">
                         </div>
                     </div>
-                    
+
                     <div class="mb-6">
                         <label for="menu-description" class="block text-sm font-medium text-text-light mb-1">Deskripsi</label>
                         <textarea name="menu_description" id="menu-description" rows="3" class="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-accent-gold"></textarea>
@@ -689,7 +705,7 @@ ob_end_flush();
                 </form>
             </div>
         </div>
-        
+
     </div>
 
     <!-- Mobile Menu Overlay -->
@@ -704,7 +720,7 @@ ob_end_flush();
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
-        
+
         // Fungsi untuk membuka/menutup sidebar
         function toggleSidebar() {
             const isDesktop = window.innerWidth >= 768;
@@ -715,7 +731,7 @@ ob_end_flush();
                 sidebarOverlay.classList.toggle('hidden');
             } else {
                 // LOGIKA DESKTOP: Menggunakan 'is-closed' pada sidebar dan 'sidebar-closed' pada main content
-                
+
                 // Toggle kelas untuk sidebar (mengubah dari relatif/terbuka menjadi fixed/tersembunyi)
                 const isClosed = sidebar.classList.toggle('is-closed');
 
@@ -724,13 +740,13 @@ ob_end_flush();
 
                 // Tambahkan/hapus kelas 'active' hanya untuk konsistensi CSS
                 if (isClosed) {
-                     sidebar.classList.remove('active');
+                    sidebar.classList.remove('active');
                 } else {
-                     sidebar.classList.add('active');
+                    sidebar.classList.add('active');
                 }
             }
         }
-        
+
         // Event Listener untuk tombol menu
         menuBtn.addEventListener('click', toggleSidebar);
 
@@ -741,16 +757,16 @@ ob_end_flush();
                 sidebarOverlay.classList.add('hidden');
             }
         });
-        
+
         // Fungsi inisialisasi pada saat load
         function initializeLayout() {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 // DESKTOP: Default Terbuka
                 sidebar.classList.add('active');
                 sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); 
+                mainContent.classList.remove('sidebar-closed');
             } else {
                 // MOBILE: Default Tertutup
                 sidebar.classList.remove('active');
@@ -760,11 +776,11 @@ ob_end_flush();
         }
 
         document.addEventListener('DOMContentLoaded', initializeLayout);
-        
+
         // Logika untuk menangani perubahan ukuran layar
         window.addEventListener('resize', () => {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 // Transisi ke Desktop:
                 sidebar.classList.add('active');
@@ -911,7 +927,7 @@ ob_end_flush();
             document.getElementById(`${tabId}-content`).classList.remove('hidden');
             document.getElementById(`${tabId}-tab`).classList.add('active-tab', 'text-text-light');
             document.getElementById(`${tabId}-tab`).classList.remove('text-gray-400');
-            
+
             // Set URL hash untuk mempertahankan tab saat refresh (opsional, tapi bagus)
             history.pushState(null, null, `#${tabId}`);
         }
@@ -920,13 +936,13 @@ ob_end_flush();
         document.addEventListener('DOMContentLoaded', () => {
             // Cari apakah ada hash di URL (misal: #categories)
             const urlHash = window.location.hash.substring(1);
-            
+
             // Jika ada feedback message, gunakan JS untuk beralih ke tab produk jika aksi produk yang dijalankan
             const isProductAction = document.getElementById('menu-modal-action') && document.getElementById('menu-modal-action').value === 'add' || document.getElementById('menu-modal-action').value === 'edit' || document.getElementById('menu-modal-action').value === 'delete';
-            
+
             if (isProductAction) {
                 // Jika aksi CRUD Produk baru saja dijalankan, tetap di tab produk
-                switchTab('products'); 
+                switchTab('products');
             } else if (urlHash === 'categories') {
                 switchTab('categories');
             } else {
@@ -944,7 +960,7 @@ ob_end_flush();
                 // Nonaktifkan tombol segera setelah submit pertama kali
                 submitBtn.disabled = true;
                 // Opsional: Ganti teks tombol untuk umpan balik visual
-                submitBtn.textContent = 'Memproses...'; 
+                submitBtn.textContent = 'Memproses...';
             });
         }
         // Pastikan lucide.createIcons() dipanggil sekali di akhir

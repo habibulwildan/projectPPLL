@@ -20,11 +20,10 @@ if (!$is_logged_in || !$is_admin) {
 // Variabel $conn (koneksi MySQLi) akan tersedia setelah include ini
 // ==========================================================
 // Pastikan file config.php sudah di-include
-include "config.php"; 
-
+include "config.php";
 // Data pengguna yang sudah login
-$admin_name = $_SESSION['admin_id'] ?? "Admin"; // Menggunakan ID sebagai nama default jika nama tidak ada
-$admin_email = $_SESSION['admin_email'] ?? "admin@example.com";
+$admin_name = $_SESSION['user_role'] ?? "Admin"; // Menggunakan ID sebagai nama default jika nama tidak ada
+$admin_email = $_SESSION['user_email'] ?? "admin@example.com";
 
 $total_users = "Error"; // Default error value
 $sales_today = 0; // Total penjualan hari ini
@@ -49,24 +48,23 @@ if ($conn) {
 
         if ($result_users_query) {
             $result_users = mysqli_fetch_assoc($result_users_query);
-            mysqli_free_result($result_users_query); 
-            $total_users = number_format($result_users['total_count'] ?? 0); 
+            mysqli_free_result($result_users_query);
+            $total_users = number_format($result_users['total_count'] ?? 0);
         } else {
             $error_message .= "Kueri Pengguna Gagal: " . mysqli_error($conn) . ". ";
             $total_users = "Error Kueri";
         }
-        
+
         // --- 2.2. AMBIL TOTAL PENJUALAN HARI INI (Menggunakan order_date) ---
         $sql_sales_today = "SELECT SUM(total_amount) AS total_sales FROM orders WHERE DATE(order_date) = CURDATE()";
         $result_sales_query = mysqli_query($conn, $sql_sales_today);
-        
+
         if ($result_sales_query) {
             $result_sales = mysqli_fetch_assoc($result_sales_query);
             mysqli_free_result($result_sales_query);
-            
+
             $sales_today = $result_sales['total_sales'] ?? 0;
             $sales_today_debug_info = "Kueri Hari Ini Berhasil. Total: " . $sales_today;
-
         } else {
             $sql_error = mysqli_error($conn);
             $error_message .= "Kueri Penjualan Hari Ini GAGAL: " . $sql_error . ". ";
@@ -77,7 +75,7 @@ if ($conn) {
         // --- 2.3. AMBIL TOTAL PENJUALAN KESELURUHAN ---
         $sql_sales_alltime = "SELECT SUM(total_amount) AS total_sales FROM orders";
         $result_alltime_query = mysqli_query($conn, $sql_sales_alltime);
-        
+
         if ($result_alltime_query) {
             $result_alltime = mysqli_fetch_assoc($result_alltime_query);
             mysqli_free_result($result_alltime_query);
@@ -106,16 +104,16 @@ if ($conn) {
             $error_message .= "Kueri Produk Baru GAGAL: " . mysqli_error($conn) . ". ";
             $new_products_this_month = 0;
         }
-        
+
         // --- 2.5. AMBIL PESANAN TERBARU ---
-        $sql_orders = "SELECT id, customer_name, status, total_amount, order_date FROM orders ORDER BY order_date DESC LIMIT 3";
+        $sql_orders = "SELECT orders.id, order_number, users.name, status, total_amount, order_date FROM orders, users WHERE orders.customer_id = users.id ORDER BY order_date DESC LIMIT 3";
         $result_orders_query = mysqli_query($conn, $sql_orders);
-        
+
         if ($result_orders_query) {
-            while($row = mysqli_fetch_assoc($result_orders_query)) {
+            while ($row = mysqli_fetch_assoc($result_orders_query)) {
                 $latest_orders[] = [
-                    'id' => $row['id'],
-                    'pelanggan' => $row['customer_name'],
+                    'id' => $row['order_number'],
+                    'pelanggan' => $row['name'],
                     'status' => $row['status'],
                     'total' => $row['total_amount'],
                 ];
@@ -123,10 +121,9 @@ if ($conn) {
             mysqli_free_result($result_orders_query);
         } else {
             $error_message .= "Kueri Pesanan Gagal: Cek kolom 'customer_name' dan 'total_amount'. Pesan error SQL: " . mysqli_error($conn);
-            $latest_orders = []; 
+            $latest_orders = [];
         }
-
-    } catch(\Throwable $e) {
+    } catch (\Throwable $e) {
         // Tangani error umum (termasuk error koneksi PHP)
         $error_message = "Error Umum/Fatal: " . $e->getMessage();
         error_log($error_message);
@@ -151,10 +148,11 @@ if (isset($conn) && $conn) {
 }
 
 // Fungsi pembantu untuk memformat nilai rupiah dengan 'juta' jika angkanya besar
-function format_rupiah_sales($number) {
+function format_rupiah_sales($number)
+{
     // Pastikan input adalah angka
     if (!is_numeric($number)) return 'Rp 0';
-    
+
     if ($number >= 1000000) {
         // Format ke 'X Juta'
         return 'Rp ' . number_format($number / 1000000, 1, ',', '.') . ' Juta';
@@ -207,13 +205,16 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #3b2f2f;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #8a6d46;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #c8a66a;
         }
@@ -226,15 +227,17 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
         /* * LOGIKA SIDEBAR
          */
-        
+
         .sidebar {
             /* Default Mobile: Sidebar tersembunyi di luar layar */
-            transform: translateX(-100%); 
+            transform: translateX(-100%);
             transition: transform 0.3s ease-in-out;
-            position: fixed; /* Selalu fixed di mobile */
+            position: fixed;
+            /* Selalu fixed di mobile */
             height: 100%;
-            z-index: 50; 
+            z-index: 50;
         }
+
         .sidebar.active {
             /* Ketika 'active', muncul di layar (baik mobile/desktop) */
             transform: translateX(0);
@@ -242,33 +245,37 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
         .main-content {
             /* Default padding untuk desktop (akan diubah oleh JS di mobile) */
-            padding-left: 0; 
+            padding-left: 0;
             transition: padding-left 0.3s ease-in-out;
             min-height: 100vh;
         }
-        
+
         /* MEDIA QUERY UNTUK DESKTOP (> 768px) */
         @media (min-width: 768px) {
             .sidebar {
                 /* Default Desktop: Terbuka dan memengaruhi layout (relatif) */
-                transform: translateX(0); /* Default terbuka */
-                position: relative; 
+                transform: translateX(0);
+                /* Default terbuka */
+                position: relative;
                 z-index: 10;
             }
+
             /* Sidebar Tertutup di Desktop */
             .sidebar.is-closed {
                 /* Atur menjadi fixed dan sembunyikan sepenuhnya (untuk toggle) */
-                transform: translateX(-100%); 
-                position: fixed; 
+                transform: translateX(-100%);
+                position: fixed;
             }
+
             .main-content {
                 /* Default Desktop: Padding sebesar lebar sidebar (w-64 = 16rem = 256px) */
-                padding-left: 16rem; 
+                padding-left: 16rem;
             }
+
             /* Main Content Sidebar Tertutup */
             .main-content.sidebar-closed {
                 /* Ketika sidebar ditutup, hapus padding-left */
-                padding-left: 0; 
+                padding-left: 0;
             }
         }
     </style>
@@ -278,7 +285,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
     <!-- Sidebar (Primary Dark) -->
     <div id="sidebar" class="sidebar bg-primary-dark w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transition duration-200 ease-in-out z-40 shadow-2xl">
-        
+
         <!-- Logo/Judul -->
         <a href="#" class="text-white flex items-center space-x-2 px-4">
             <i data-lucide="coffee" class="w-8 h-8 text-accent-gold"></i>
@@ -316,17 +323,17 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
     <!-- Main Content -->
     <div id="main-content" class="main-content flex-1 flex flex-col overflow-hidden">
-        
+
         <!-- Header Top Bar -->
         <header class="flex items-center p-4 bg-primary-dark shadow-md sticky top-0 z-20">
-            
+
             <!-- Mobile Menu Button (Selalu terlihat di mobile & desktop) -->
             <button id="menu-btn" class="text-text-light mr-4 md:mr-8 block">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-            
+
             <!-- Judul (Ambil sisa ruang, kecuali untuk info user) -->
-           
+
 
             <!-- User Info and Avatar -->
             <div class="flex items-center space-x-3 ml-auto">
@@ -339,7 +346,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
         <!-- Main Content Area -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 bg-[#2c2c2c]">
-            
+
             <?php if (!empty($error_message)): ?>
                 <!-- Alert/Pesan Error di Atas Tabel -->
                 <div role="alert" class="bg-red-800 text-white p-4 rounded-lg mb-6 border border-red-600">
@@ -364,7 +371,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
             <!-- Cards Statistik -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                
+
                 <!-- Card 1: Total Pengguna (DARI DATABASE) -->
                 <div class="bg-primary-dark p-6 rounded-xl shadow-lg border-t-4 border-accent-gold transform hover:scale-[1.02] transition duration-300">
                     <div class="flex justify-between items-center">
@@ -404,8 +411,8 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                     <p class="text-gray-400 mt-1">Kepuasan Pelanggan</p>
                 </div>
             </div>
-            
-            
+
+
 
             <!-- Bagian Tabel Pesanan Terbaru (DARI DATABASE) -->
             <div class="bg-primary-dark rounded-xl shadow-xl p-6">
@@ -428,7 +435,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($latest_orders as $order): 
+                                <?php foreach ($latest_orders as $order):
                                     // Logika untuk menentukan warna badge status
                                     $badge_class = 'bg-gray-700 text-gray-300';
                                     switch (strtolower($order['status'])) {
@@ -445,14 +452,15 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                                             $badge_class = 'bg-blue-900 text-blue-300'; // Default warna lain
                                             break;
                                     }
+
                                 ?>
                                     <tr>
                                         <!-- Menggunakan key 'id', 'pelanggan', 'status', dan 'total' dari array hasil mapping di atas -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">#<?= htmlspecialchars($order['id']) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm"><?= htmlspecialchars($order['pelanggan']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">#<?= htmlspecialchars($order['id'] ?? '') ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm"><?= htmlspecialchars($order['pelanggan'] ?? '') ?></td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $badge_class ?>">
-                                                <?= htmlspecialchars($order['status']) ?>
+                                                <?= htmlspecialchars($order['status'] ?? '') ?>
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-right">Rp <?= number_format($order['total'], 0, ',', '.') ?></td>
@@ -479,7 +487,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
-        
+
         // Fungsi untuk membuka/menutup sidebar
         function toggleSidebar() {
             const isDesktop = window.innerWidth >= 768;
@@ -490,7 +498,7 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                 sidebarOverlay.classList.toggle('hidden');
             } else {
                 // LOGIKA DESKTOP: Menggunakan 'is-closed' pada sidebar dan 'sidebar-closed' pada main content
-                
+
                 // Toggle kelas untuk sidebar (mengubah dari relatif/terbuka menjadi fixed/tersembunyi)
                 const isClosed = sidebar.classList.toggle('is-closed');
 
@@ -499,13 +507,13 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
 
                 // Tambahkan/hapus kelas 'active' hanya untuk konsistensi CSS
                 if (isClosed) {
-                     sidebar.classList.remove('active');
+                    sidebar.classList.remove('active');
                 } else {
-                     sidebar.classList.add('active');
+                    sidebar.classList.add('active');
                 }
             }
         }
-        
+
         // Event Listener untuk tombol menu
         menuBtn.addEventListener('click', toggleSidebar);
 
@@ -516,16 +524,16 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                 sidebarOverlay.classList.add('hidden');
             }
         });
-        
+
         // Fungsi inisialisasi pada saat load
         function initializeLayout() {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 // DESKTOP: Default Terbuka
                 sidebar.classList.add('active');
                 sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); 
+                mainContent.classList.remove('sidebar-closed');
             } else {
                 // MOBILE: Default Tertutup
                 sidebar.classList.remove('active');
@@ -535,11 +543,11 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
         }
 
         document.addEventListener('DOMContentLoaded', initializeLayout);
-        
+
         // Logika untuk menangani perubahan ukuran layar
         window.addEventListener('resize', () => {
             const isDesktop = window.innerWidth >= 768;
-            
+
             if (isDesktop) {
                 // Transisi ke Desktop:
                 sidebar.classList.add('active');
