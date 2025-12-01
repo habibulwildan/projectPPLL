@@ -310,10 +310,6 @@ $sales_alltime_formatted = format_rupiah_sales($sales_alltime);
                 <i data-lucide="receipt" class="w-5 h-5"></i>
                 <span>Pesanan</span>
             </a>
-            <a href="#" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Pengaturan</span>
-            </a>
             <a href="logout.php" class="mt-8 sidebar-item block py-2.5 px-4 rounded transition duration-200 text-red-400 font-medium border-l-4 border-transparent hover:border-red-600 flex items-center space-x-2">
                 <i data-lucide="log-out" class="w-5 h-5"></i>
                 <span>Logout</span>

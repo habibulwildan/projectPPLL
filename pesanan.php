@@ -20,7 +20,7 @@ if (!$is_logged_in || !$is_admin) {
 // Variabel $conn (koneksi MySQLi) akan tersedia setelah include ini
 // ==========================================================
 // Pastikan file config.php sudah di-include
-include "config.php"; 
+include "config.php";
 // Data pengguna yang sudah login
 $admin_name = $_SESSION['admin_id'] ?? "Admin"; // Menggunakan ID sebagai nama default jika nama tidak ada
 $admin_email = $_SESSION['admin_email'] ?? "admin@example.com";
@@ -41,7 +41,7 @@ $error_message = "";
 // Aksi DELETE
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $order_id_to_delete = (int)$_GET['id'];
-    
+
     // Mulai transaksi untuk memastikan konsistensi
     $conn->begin_transaction();
 
@@ -63,10 +63,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
             $conn->rollback();
             $error_message = "Gagal menghapus pesanan. Pesanan mungkin tidak ditemukan.";
         }
-        
+
         $stmt_detail->close();
         $stmt_order->close();
-
     } catch (Exception $e) {
         $conn->rollback();
         $error_message = "Error: " . $e->getMessage();
@@ -77,15 +76,15 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
 if (isset($_POST['update_status'])) {
     $order_id = (int)$_POST['order_id'];
     $new_status = $_POST['status'];
-    
+
     // Daftar status yang valid (sesuaikan dengan tabel Anda)
-    $valid_statuses = ['confirmed', 'processed', 'delivered', 'cancelled']; 
+    $valid_statuses = ['confirmed', 'processed', 'delivered', 'cancelled'];
     if (!in_array($new_status, $valid_statuses)) {
         $error_message = "Status tidak valid.";
     } else {
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $new_status, $order_id);
-        
+
         if ($stmt->execute()) {
             $success_message = "Status Pesanan ID: $order_id berhasil diubah menjadi **" . htmlspecialchars($new_status) . "**.";
         } else {
@@ -181,13 +180,16 @@ $conn->close();
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #3b2f2f;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #8a6d46;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #c8a66a;
         }
@@ -200,15 +202,17 @@ $conn->close();
 
         /* * LOGIKA SIDEBAR
          */
-        
+
         .sidebar {
             /* Default Mobile: Sidebar tersembunyi di luar layar */
-            transform: translateX(-100%); 
+            transform: translateX(-100%);
             transition: transform 0.3s ease-in-out;
-            position: fixed; /* Selalu fixed di mobile */
+            position: fixed;
+            /* Selalu fixed di mobile */
             height: 100%;
-            z-index: 50; 
+            z-index: 50;
         }
+
         .sidebar.active {
             /* Ketika 'active', muncul di layar (baik mobile/desktop) */
             transform: translateX(0);
@@ -216,33 +220,37 @@ $conn->close();
 
         .main-content {
             /* Default padding untuk desktop (akan diubah oleh JS di mobile) */
-            padding-left: 0; 
+            padding-left: 0;
             transition: padding-left 0.3s ease-in-out;
             min-height: 100vh;
         }
-        
+
         /* MEDIA QUERY UNTUK DESKTOP (> 768px) */
         @media (min-width: 768px) {
             .sidebar {
                 /* Default Desktop: Terbuka dan memengaruhi layout (relatif) */
-                transform: translateX(0); /* Default terbuka */
-                position: relative; 
+                transform: translateX(0);
+                /* Default terbuka */
+                position: relative;
                 z-index: 10;
             }
+
             /* Sidebar Tertutup di Desktop */
             .sidebar.is-closed {
                 /* Atur menjadi fixed dan sembunyikan sepenuhnya (untuk toggle) */
-                transform: translateX(-100%); 
-                position: fixed; 
+                transform: translateX(-100%);
+                position: fixed;
             }
+
             .main-content {
                 /* Default Desktop: Padding sebesar lebar sidebar (w-64 = 16rem = 256px) */
-                padding-left: 16rem; 
+                padding-left: 16rem;
             }
+
             /* Main Content Sidebar Tertutup */
             .main-content.sidebar-closed {
                 /* Ketika sidebar ditutup, hapus padding-left */
-                padding-left: 0; 
+                padding-left: 0;
             }
         }
     </style>
@@ -252,7 +260,7 @@ $conn->close();
 
     <!-- Sidebar (Primary Dark) -->
     <div id="sidebar" class="sidebar bg-primary-dark w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transition duration-200 ease-in-out z-40 shadow-2xl">
-        
+
         <!-- Logo/Judul -->
         <a href="#" class="text-white flex items-center space-x-2 px-4">
             <i data-lucide="coffee" class="w-8 h-8 text-accent-gold"></i>
@@ -277,10 +285,6 @@ $conn->close();
                 <i data-lucide="receipt" class="w-5 h-5"></i>
                 <span>Pesanan</span>
             </a>
-            <a href="#" class="sidebar-item block py-2.5 px-4 rounded transition duration-200 text-text-light font-medium border-l-4 border-transparent hover:border-accent-gold flex items-center space-x-2">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Pengaturan</span>
-            </a>
             <a href="logout.php" class="mt-8 sidebar-item block py-2.5 px-4 rounded transition duration-200 text-red-400 font-medium border-l-4 border-transparent hover:border-red-600 flex items-center space-x-2">
                 <i data-lucide="log-out" class="w-5 h-5"></i>
                 <span>Logout</span>
@@ -290,17 +294,17 @@ $conn->close();
 
     <!-- Main Content -->
     <div id="main-content" class="main-content flex-1 flex flex-col overflow-hidden">
-        
+
         <!-- Header Top Bar -->
         <header class="flex items-center p-4 bg-primary-dark shadow-md sticky top-0 z-20">
-            
+
             <!-- Mobile Menu Button (Selalu terlihat di mobile & desktop) -->
             <button id="menu-btn" class="text-text-light mr-4 md:mr-8 block">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-            
+
             <!-- Judul (Ambil sisa ruang, kecuali untuk info user) -->
-           
+
 
             <!-- User Info and Avatar -->
             <div class="flex items-center space-x-3 ml-auto">
@@ -312,13 +316,13 @@ $conn->close();
         </header>
 
         <!-- Main Content Area -->
-         <main class="flex-1 p-6 md:p-10 bg-[#2c2c2c] text-text-light">
+        <main class="flex-1 p-6 md:p-10 bg-[#2c2c2c] text-text-light">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold text-accent-gold flex items-center space-x-2">
                     <i data-lucide="receipt" class="w-8 h-8"></i>
                     <span>Manajemen Pesanan</span>
                 </h1>
-                </div>
+            </div>
 
             <?php if ($success_message): ?>
                 <div class="bg-green-600/20 text-green-300 p-4 rounded-lg mb-4 flex items-center space-x-3" role="alert">
@@ -335,7 +339,7 @@ $conn->close();
             <?php endif; ?>
 
             <div class="bg-primary-dark p-6 rounded-xl shadow-lg overflow-x-auto">
-                
+
                 <?php if (empty($orders)): ?>
                     <p class="text-center text-gray-400 py-10">Tidak ada data pesanan yang ditemukan.</p>
                 <?php else: ?>
@@ -354,15 +358,15 @@ $conn->close();
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
-                            <?php foreach ($orders as $order): 
+                            <?php foreach ($orders as $order):
                                 // Tentukan nama customer yang ditampilkan
-                                $display_customer_name = !empty($order['customer_name']) 
-                                                        ? htmlspecialchars($order['customer_name']) 
-                                                        : (
-                                                            !empty($order['customer_name_from_table']) 
-                                                            ? htmlspecialchars($order['customer_name_from_table']) 
-                                                            : 'Guest'
-                                                        );
+                                $display_customer_name = !empty($order['customer_name'])
+                                    ? htmlspecialchars($order['customer_name'])
+                                    : (
+                                        !empty($order['customer_name_from_table'])
+                                        ? htmlspecialchars($order['customer_name_from_table'])
+                                        : 'Guest'
+                                    );
 
                                 // Fungsi untuk warna status
                                 $status_class = match ($order['status']) {
@@ -427,105 +431,106 @@ $conn->close();
 
             </div>
         </main>
-        
-    <!-- Mobile Menu Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-30 hidden md:hidden"></div>
 
-    <script>
-        // Inisialisasi Lucide Icons
-        lucide.createIcons();
+        <!-- Mobile Menu Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-30 hidden md:hidden"></div>
 
-        // Elemen DOM
-        const menuBtn = document.getElementById('menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const mainContent = document.getElementById('main-content');
-        
-        // Fungsi untuk membuka/menutup sidebar
-        function toggleSidebar() {
-            const isDesktop = window.innerWidth >= 768;
+        <script>
+            // Inisialisasi Lucide Icons
+            lucide.createIcons();
 
-            if (!isDesktop) {
-                // LOGIKA MOBILE: Menggunakan 'active' untuk transform dan overlay
-                sidebar.classList.toggle('active');
-                sidebarOverlay.classList.toggle('hidden');
-            } else {
-                // LOGIKA DESKTOP: Menggunakan 'is-closed' pada sidebar dan 'sidebar-closed' pada main content
-                
-                // Toggle kelas untuk sidebar (mengubah dari relatif/terbuka menjadi fixed/tersembunyi)
-                const isClosed = sidebar.classList.toggle('is-closed');
+            // Elemen DOM
+            const menuBtn = document.getElementById('menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const mainContent = document.getElementById('main-content');
 
-                // Toggle kelas untuk main content (mengubah padding)
-                mainContent.classList.toggle('sidebar-closed', isClosed);
+            // Fungsi untuk membuka/menutup sidebar
+            function toggleSidebar() {
+                const isDesktop = window.innerWidth >= 768;
 
-                // Tambahkan/hapus kelas 'active' hanya untuk konsistensi CSS
-                if (isClosed) {
-                     sidebar.classList.remove('active');
+                if (!isDesktop) {
+                    // LOGIKA MOBILE: Menggunakan 'active' untuk transform dan overlay
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('hidden');
                 } else {
-                     sidebar.classList.add('active');
+                    // LOGIKA DESKTOP: Menggunakan 'is-closed' pada sidebar dan 'sidebar-closed' pada main content
+
+                    // Toggle kelas untuk sidebar (mengubah dari relatif/terbuka menjadi fixed/tersembunyi)
+                    const isClosed = sidebar.classList.toggle('is-closed');
+
+                    // Toggle kelas untuk main content (mengubah padding)
+                    mainContent.classList.toggle('sidebar-closed', isClosed);
+
+                    // Tambahkan/hapus kelas 'active' hanya untuk konsistensi CSS
+                    if (isClosed) {
+                        sidebar.classList.remove('active');
+                    } else {
+                        sidebar.classList.add('active');
+                    }
                 }
             }
-        }
-        
-        // Event Listener untuk tombol menu
-        menuBtn.addEventListener('click', toggleSidebar);
 
-        // Event Listener untuk overlay (hanya di mobile)
-        sidebarOverlay.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.add('hidden');
-            }
-        });
-        
-        // Fungsi inisialisasi pada saat load
-        function initializeLayout() {
-            const isDesktop = window.innerWidth >= 768;
-            
-            if (isDesktop) {
-                // DESKTOP: Default Terbuka
-                sidebar.classList.add('active');
-                sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); 
-            } else {
-                // MOBILE: Default Tertutup
-                sidebar.classList.remove('active');
-                sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed'); // Pastikan tidak ada padding desktop
-            }
-        }
+            // Event Listener untuk tombol menu
+            menuBtn.addEventListener('click', toggleSidebar);
 
-        document.addEventListener('DOMContentLoaded', initializeLayout);
-        
-        // Logika untuk menangani perubahan ukuran layar
-        window.addEventListener('resize', () => {
-            const isDesktop = window.innerWidth >= 768;
-            
-            if (isDesktop) {
-                // Transisi ke Desktop:
-                sidebar.classList.add('active');
-                sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed');
-                sidebarOverlay.classList.add('hidden');
+            // Event Listener untuk overlay (hanya di mobile)
+            sidebarOverlay.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.add('hidden');
+                }
+            });
 
-            } else {
-                // Transisi ke Mobile:
-                sidebar.classList.remove('active');
-                sidebar.classList.remove('is-closed');
-                mainContent.classList.remove('sidebar-closed');
-                sidebarOverlay.classList.add('hidden');
-            }
-        });
-        function confirmDelete(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus pesanan dengan ID " + id + "? Tindakan ini tidak dapat dibatalkan dan juga akan menghapus detail pesanan!")) {
-                // Arahkan ke URL delete jika dikonfirmasi
-                window.location.href = 'orders.php?action=delete&id=' + id;
-            }
-        }
+            // Fungsi inisialisasi pada saat load
+            function initializeLayout() {
+                const isDesktop = window.innerWidth >= 768;
 
-        // Panggil ulang lucide icons setelah konten dinamis ditambahkan (jika perlu)
-        lucide.createIcons();
-    </script>
+                if (isDesktop) {
+                    // DESKTOP: Default Terbuka
+                    sidebar.classList.add('active');
+                    sidebar.classList.remove('is-closed');
+                    mainContent.classList.remove('sidebar-closed');
+                } else {
+                    // MOBILE: Default Tertutup
+                    sidebar.classList.remove('active');
+                    sidebar.classList.remove('is-closed');
+                    mainContent.classList.remove('sidebar-closed'); // Pastikan tidak ada padding desktop
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', initializeLayout);
+
+            // Logika untuk menangani perubahan ukuran layar
+            window.addEventListener('resize', () => {
+                const isDesktop = window.innerWidth >= 768;
+
+                if (isDesktop) {
+                    // Transisi ke Desktop:
+                    sidebar.classList.add('active');
+                    sidebar.classList.remove('is-closed');
+                    mainContent.classList.remove('sidebar-closed');
+                    sidebarOverlay.classList.add('hidden');
+
+                } else {
+                    // Transisi ke Mobile:
+                    sidebar.classList.remove('active');
+                    sidebar.classList.remove('is-closed');
+                    mainContent.classList.remove('sidebar-closed');
+                    sidebarOverlay.classList.add('hidden');
+                }
+            });
+
+            function confirmDelete(id) {
+                if (confirm("Apakah Anda yakin ingin menghapus pesanan dengan ID " + id + "? Tindakan ini tidak dapat dibatalkan dan juga akan menghapus detail pesanan!")) {
+                    // Arahkan ke URL delete jika dikonfirmasi
+                    window.location.href = 'orders.php?action=delete&id=' + id;
+                }
+            }
+
+            // Panggil ulang lucide icons setelah konten dinamis ditambahkan (jika perlu)
+            lucide.createIcons();
+        </script>
 
 </body>
 
